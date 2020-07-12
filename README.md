@@ -1,4 +1,4 @@
-# Museum
+# Returning the Gaze Exhibit
 
 ## First-time Setup
 
