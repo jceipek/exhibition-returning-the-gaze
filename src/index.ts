@@ -1,6 +1,11 @@
 import './main.css';
 import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
 
+
+hello 
+
+
+
 import * as Stats from "stats.js"
 let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
