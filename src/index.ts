@@ -1,32 +1,70 @@
 import './main.css';
-import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer,
+    VideoTexture, LinearFilter, RGBFormat,
+    PointLight, HemisphereLight, DirectionalLight,
+    LineBasicMaterial,
+    BufferGeometry,
+    Line,Group,
+    Matrix4, Vector3 } from "three";
 
+
+import maskLocations from "./masksLocation"
+
+import hallwaySrc from './models/hall02.glb';
+import maskSrc from './models/head03.glb';
+
+const DEBUG = {
+    red: new LineBasicMaterial( { color: 0xff0000 } ),
+    green: new LineBasicMaterial( { color: 0x00ff00 } ),
+    blue: new LineBasicMaterial( { color: 0x0000ff } ),
+};
+function makeDebugLines(pos:[number,number,number], right: Vector3, up: Vector3, forward: Vector3) {
+    let points = [];
+    points.push( new Vector3( pos[0], pos[1], pos[2] ) );
+    points.push( new Vector3( pos[0]+right.x, pos[1]+right.y, pos[2]+right.z ) );
+    let rightGeometry = new BufferGeometry();
+    rightGeometry.setFromPoints( points );
+    let rightLine = new Line( rightGeometry, DEBUG.red );
+
+    points = [];
+    points.push( new Vector3( pos[0], pos[1], pos[2] ) );
+    points.push( new Vector3( pos[0]+up.x, pos[1]+up.y, pos[2]+up.z ) );
+    let upGeometry = new BufferGeometry();
+    upGeometry.setFromPoints( points );
+    let upLine = new Line( upGeometry, DEBUG.green );
+
+    points = [];
+    points.push( new Vector3( pos[0], pos[1], pos[2] ) );
+    points.push( new Vector3( pos[0]+forward.x, pos[1]+forward.y, pos[2]+forward.z ) );
+    let forwardGeometry = new BufferGeometry();
+    forwardGeometry.setFromPoints( points );
+    let forwardLine = new Line( forwardGeometry, DEBUG.blue );
+
+    let group = new Group();
+    group.add( rightLine );
+    group.add( upLine );
+    group.add( forwardLine );
+    return group;
+}
+
+
+// Performance Monitor
 import * as Stats from "stats.js"
 let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
-import video1src from "./media/V03.webm";
-import video2src from "./media/V04 lowRES.webm";
-import video3src from "./media/V05.webm";
-import video4src from "./media/V03.webm";
-import video5src from "./media/V06.webm";
-let videoSrcs = [
-    video1src,
-    video2src,
-    video3src,
-    video4src,
-    video5src,
-];
-let planeData = [
-    {pos: [-1,0,3-5], rot:  [0,45,0]},
-    {pos: [1,0,4-5], rot:  [0,-30,0]},
-    {pos: [-1,0,3-8], rot:  [0,35,0]},
-    {pos: [1,0,5-8], rot:  [0,-15,0]},
-    {pos: [0,0,3-10], rot: [0,0,0]},
-];
+// DRACO compressed model loader
+const draco = new DRACOLoader()
+// TODO(JULIAN): Figure out why loading locally doesn't work!
+//draco.setDecoderPath('./draco/gltf/');
+draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+draco.preload();
 
-
+const loader = new GLTFLoader();
+loader.setDRACOLoader( draco );
 
 // Reasonable defaults
 const PIXEL_STEP  = 10;
@@ -75,72 +113,134 @@ function normalizeWheel(event: any) : any {
            pixelY : pY };
 }
 
-
-
-(window as any).video1src = video1src;
-
-console.log("Hello World");
-
-function makeVideoTex(video: HTMLVideoElement) {
-    let texture = new VideoTexture( video );
-    texture.minFilter = LinearFilter;
-    texture.magFilter = LinearFilter;
-    texture.format = RGBFormat;
-    return texture;
-}
-
-function makeMaterial(video: HTMLVideoElement) {
-    return new MeshBasicMaterial( {map: makeVideoTex(video)} );
-}
-
-function makePlane(video: HTMLVideoElement) {
-    let geometry = new PlaneGeometry( 1.77777, 1, 1 );
-    let material = makeMaterial(video);
-    let plane = new Mesh( geometry, material );
-    return plane;
-}
-
 let scene = new Scene();
 let camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera.position.set (0,-3,0);
+
+// let light = new HemisphereLight( 0xffffff, 0x000000, 0.8 );
+// scene.add( light );
+// let light2= new PointLight(0xFFFFFF,1,500);
+// light2.position.set(0,50,10);
+// scene.add(light2);
+
+var directionalLight = new DirectionalLight( 0xffffff, 0.6 );
+directionalLight.position.set(0,1,1);
+scene.add( directionalLight );
+
+// loader.load( hallwaySrc, function ( geometry ) {
+//     let model = geometry.scene;
+//     scene.add(model);
+// }, undefined, function ( error ) {
+//     console.error( error );
+// } );
+
+
+// let geometry= new TorusGeometry(0.06,0.01,2,100);
+// let material= new MeshBasicMaterial({color: 0xFF00CC});
+// let torus= new Mesh (geometry,material);
+// for( let i= 0; i<maskLocations.length;i++){
+//     let pos = maskLocations[i][2];
+//     // let currMask = torus.clone();
+//     let geometry= new TorusGeometry(0.06,0.01,2,100);
+//     let material= new MeshBasicMaterial({color: 0xFF00CC});
+//     let currMask= new Mesh (geometry,material);
+//     currMask.position.set(pos[0],pos[1],pos[2]);
+//     scene.add(currMask);
+// }
+
+
+loader.load( maskSrc, function ( geometry ) {
+    let model = geometry.scene;
+
+    let m = new Matrix4();
+    let u = new Vector3();
+    let v = new Vector3();
+    let n = new Vector3();
+
+    
+    for( let i= 0; i<maskLocations.length;i++){
+        let pos = maskLocations[i][2];
+        let currMask = model.clone();
+        currMask.position.set(pos[0],pos[2],pos[1]);
+        
+        u.set(maskLocations[i][0][0], maskLocations[i][0][2], maskLocations[i][0][1]); //side
+        v.set(maskLocations[i][1][0], maskLocations[i][1][2], maskLocations[i][1][1]); //up
+        n.crossVectors(v,u); //normal
+
+        scene.add(makeDebugLines([pos[0],pos[2],pos[1]], u, v, n));
+        
+        // m.set( 
+        //     n.x, n.y, n.z, 0,
+        //     v.x, v.y, v.z, 0,
+        //     u.x, u.y, u.z, 0,
+        //     0, 0, 0, 1 );
+
+        // m.set( 
+        //     0, 0.707107, 0.707107, 0,
+        //     0, 0.707107, -0.707107, 0,
+        //     0, 0, 1, 0,
+        //     0, 0, 0, 1 );
+
+        // m.multiply(currMask.matrix);
+        // currMask.matrix = m;
+        // m.set( 
+        //     u.x, v.x, n.x, 0,
+        //     u.y, v.y, n.y, 0,
+        //     u.z, v.z, n.z, 0,
+        //     0, 0, 0, 1 );
+        // m.set( 
+        //     1, 0, 0, 0,
+        //     0, 1, 0, 0,
+        //     0, 0, 1, 0,
+        //     0, 0, 0, 1 );
+            
+        // currMask.setRotationFromMatrix(m);
+
+
+        // currMask.applyMatrix4(m);
+
+        currMask.lookAt(pos[0]+n.x,pos[2]-n.y,pos[1]+n.z);
+        // currMask.lookAt(pos[0]+v.x,pos[2]+v.y,pos[1]+v.z);
+        scene.add(currMask);
+
+        // This is the same as: 
+        //let row = maskLocations[i]; 
+        // let position = row[2];
+    }
+}, undefined, function ( error ) {
+    console.error( error );
+} );
 
 let renderer = new WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setClearColor("black");
+renderer.setClearColor("white");
 document.body.appendChild( renderer.domElement );
 
-let vids = videoSrcs.map(makeVideo);
-let planes = vids.map(makePlane);
-
-for (let i = 0; i < planes.length; i++) {
-    let pos = planeData[i].pos;
-    let rot = planeData[i].rot;
-    planes[i].position.set(pos[0],pos[1], pos[2]);
-    planes[i].rotation.set(0,rot[1]*2*Math.PI/360,0);
-    scene.add( planes[i] );
-}
-// plane.rotation.set(Math.PI/3,Math.PI/3,Math.PI/3);
-
 window.addEventListener("click", () => {
-    vids.forEach(vid => {
-        vid.play();
-    });
+
 });
 
 const STATE = {
-    frac: 0
+    frac: 0,
+    frac2: 0
 };
 
 window.addEventListener("wheel", (scrollEvt) => {
     let evt = normalizeWheel(scrollEvt);
-    let length = 6.5;
+    let length = Math.PI*2;
     STATE.frac -= evt.pixelY * 0.0001 * length;
-    STATE.frac = Math.max(0, Math.min(1,STATE.frac));
-    camera.position.set(0,0,STATE.frac*-length);
+    // STATE.frac = Math.max(0, Math.min(1,STATE.frac));
+
+    STATE.frac2 -= evt.pixelX * 0.0001 * length;
+    // STATE.frac2 = Math.max(0, Math.min(1,STATE.frac2));
+    // TODO: Rotate
+    // camera.rotation.set(0,STATE.frac*length,STATE.frac2*length);
+    camera.rotation.set(0,STATE.frac*length,0);
 });
 
 window.addEventListener("mousemove", (evt) => {
-    let frac = (evt.clientX-window.innerWidth/2)/(window.innerWidth/2); // [-1..1]
-    camera.rotation.set(0,-frac*0.3,0);
+    // let frac = (evt.clientX-window.innerWidth/2)/(window.innerWidth/2); // [-1..1]
+    // camera.rotation.set(0,-frac*0.3,0);
 });
 
 window.addEventListener("resize", () => {
@@ -148,24 +248,6 @@ window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth/window.innerHeight;
     camera.updateProjectionMatrix();
 });
-
-function makeVideo(webmSource:string) : HTMLVideoElement {
-    let video = document.createElement("video");
-    if (video.canPlayType("video/webm")) {
-        video.src = webmSource;
-    } else {
-        // Not supported
-    }
-    
-    video.width = 640;
-    video.height = 480;
-    video.loop = true;
-
-    video.preload = 'auto';
-
-    video.muted = true;
-    return video;
-}
 
 function renderLoop () {
     stats.begin();
