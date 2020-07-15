@@ -3,16 +3,19 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer,
     VideoTexture, LinearFilter, RGBFormat,
-    PointLight, HemisphereLight, DirectionalLight,
+    PointLight, HemisphereLight, DirectionalLight,SpotLight,
     LineBasicMaterial,
+    WireframeGeometry,
+    Object3D,
+    Material, 
     BufferGeometry,
     Line,Group,
-    Matrix4, Vector3 } from "three";
+    Matrix4, Vector3, ReinhardToneMapping } from "three";
 
 
 import maskLocations from "./masksLocation"
 
-import hallwaySrc from './models/hall02.glb';
+import hallwaySrc from './models/hall04.glb';
 import maskSrc from './models/head03.glb';
 
 const DEBUG = {
@@ -43,9 +46,9 @@ function makeDebugLines(pos:[number,number,number], right: Vector3, up: Vector3,
     let forwardLine = new Line( forwardGeometry, DEBUG.blue );
 
     let group = new Group();
-    group.add( rightLine );
-    group.add( upLine );
-    group.add( forwardLine );
+    // group.add( rightLine );
+    // group.add( upLine );
+    // group.add( forwardLine );
     return group;
 }
 
@@ -114,25 +117,37 @@ function normalizeWheel(event: any) : any {
 }
 
 let scene = new Scene();
-let camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-camera.position.set (0,-3,0);
+let camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+camera.position.set (0,1.5,0);
 
-// let light = new HemisphereLight( 0xffffff, 0x000000, 0.8 );
-// scene.add( light );
-// let light2= new PointLight(0xFFFFFF,1,500);
-// light2.position.set(0,50,10);
-// scene.add(light2);
+let light = new HemisphereLight( 0xffffff, 0x000000, 0.1);
+scene.add( light );
 
-var directionalLight = new DirectionalLight( 0xffffff, 0.6 );
-directionalLight.position.set(0,1,1);
-scene.add( directionalLight );
+let light2= new SpotLight(0xFFFFFF,1,50);
+light2.castShadow= true;
+light2.position.set(0,-5,0);
+scene.add(light2);
 
-// loader.load( hallwaySrc, function ( geometry ) {
-//     let model = geometry.scene;
-//     scene.add(model);
-// }, undefined, function ( error ) {
-//     console.error( error );
-// } );
+// var directionalLight = new DirectionalLight( 0xffffff, 0.6 );
+// directionalLight.position.set(0,1,0);
+// scene.add( directionalLight );
+
+loader.load( hallwaySrc, function ( geometry ) {
+    // let  wireframe = new WireframeGeometry( geometry );
+    let model = geometry.scene;
+
+    // model.traverse((node) => {
+    //     if (!node.isMesh) return;
+    //     node.material.wireframe = true;
+    //   });
+      scene.add(model);
+
+}, undefined, function ( error ) {
+    console.error( error );
+} );
+
+
+
 
 
 // let geometry= new TorusGeometry(0.06,0.01,2,100);
@@ -211,10 +226,14 @@ loader.load( maskSrc, function ( geometry ) {
     console.error( error );
 } );
 
-let renderer = new WebGLRenderer();
+let renderer = new WebGLRenderer({antialias: true});
 renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setClearColor("white");
+renderer.setClearColor("black");
+renderer.toneMapping = ReinhardToneMapping;
+renderer.toneMappingExposure= 2.3;
+// renderer.shadowMap.enabled= true;
 document.body.appendChild( renderer.domElement );
+
 
 window.addEventListener("click", () => {
 
@@ -228,7 +247,7 @@ const STATE = {
 window.addEventListener("wheel", (scrollEvt) => {
     let evt = normalizeWheel(scrollEvt);
     let length = Math.PI*2;
-    STATE.frac -= evt.pixelY * 0.0001 * length;
+    STATE.frac -= evt.pixelY * 0.001 * length;
     // STATE.frac = Math.max(0, Math.min(1,STATE.frac));
 
     STATE.frac2 -= evt.pixelX * 0.0001 * length;
@@ -239,8 +258,8 @@ window.addEventListener("wheel", (scrollEvt) => {
 });
 
 window.addEventListener("mousemove", (evt) => {
-    // let frac = (evt.clientX-window.innerWidth/2)/(window.innerWidth/2); // [-1..1]
-    // camera.rotation.set(0,-frac*0.3,0);
+    let frac = (evt.clientY-window.innerHeight/2)/(window.innerHeight/2); // [-1..1]
+    camera.rotation.set(-frac*0.9,0,0);
 });
 
 window.addEventListener("resize", () => {
@@ -252,6 +271,11 @@ window.addEventListener("resize", () => {
 function renderLoop () {
     stats.begin();
     renderer.render(scene, camera);
+    light2.position.set(
+        camera.position.x+10,
+        camera.position.y+10,
+        camera.position.z+10
+    );
     stats.end();
     requestAnimationFrame(renderLoop);
 }
