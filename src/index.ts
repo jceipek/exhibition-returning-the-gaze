@@ -132,15 +132,21 @@ scene.add(light2);
 // directionalLight.position.set(0,1,0);
 // scene.add( directionalLight );
 
-loader.load( hallwaySrc, function ( geometry ) {
-    // let  wireframe = new WireframeGeometry( geometry );
-    let model = geometry.scene;
+loader.load( hallwaySrc, function ( file ) {
+    
+    let model = file.scene;
 
-    // model.traverse((node) => {
-    //     if (!node.isMesh) return;
-    //     node.material.wireframe = true;
-    //   });
+    // file.scene.traverse( function( object ) {
+    //     if ( object instanceof Mesh) { 
+    //         let  wireframe = new WireframeGeometry( object.geometry );
+    //         console.log(object.rotation);
+    //         let mesh= new Mesh(wireframe);
+    //         scene.add (mesh);
+    //     }
+    //  } );
+
       scene.add(model);
+      
 
 }, undefined, function ( error ) {
     console.error( error );
