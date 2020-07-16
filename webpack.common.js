@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.ts',
@@ -11,6 +12,11 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'src/index.html'
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'draco', to: 'draco' },
+      ],
+    })
   ],
   output: {
     filename: 'main.js',
@@ -33,7 +39,7 @@ module.exports = {
         loader: 'html-loader',
       },
       {
-        test: /\.(png|svg|jpg|gif|webm)$/,
+        test: /\.(png|svg|jpg|gif|webm|glb)$/,
         use: [
           'file-loader',
         ],

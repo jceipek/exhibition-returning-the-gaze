@@ -1,4 +1,5 @@
 import './main.css';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
 
@@ -6,6 +7,19 @@ import * as Stats from "stats.js"
 let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
+
+// Performance Monitor
+import * as Stats from "stats.js"
+let stats = new Stats();
+stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
+document.body.appendChild( stats.dom );
+
+// DRACO compressed model loader
+const draco = new DRACOLoader()
+// TODO(JULIAN): Figure out why loading locally doesn't work!
+//draco.setDecoderPath('./draco/gltf/');
+draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+draco.preload();
 
 import video1src from "./media/KW.webm";
 import drone from "./models/drone1.glb";
@@ -31,6 +45,7 @@ let planeData = [
 
 
 const loader = new GLTFLoader();
+loader.setDRACOLoader( draco );
 
 loader.load( drone, function ( file ) {
     
