@@ -1,5 +1,9 @@
 import './main.css';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
+
+
+
 
 import * as Stats from "stats.js"
 let stats = new Stats();
@@ -7,6 +11,8 @@ stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
 import video1src from "./media/KW.webm";
+import drone from './models/drone1.glb';
+
 // import video2src from "./media/V04 lowRES.webm";
 // import video3src from "./media/V05.webm";
 // import video4src from "./media/V03.webm";
@@ -94,7 +100,7 @@ function makeMaterial(video: HTMLVideoElement) {
 }
 
 function makePlane(video: HTMLVideoElement) {
-    let geometry = new PlaneGeometry( 2.77777, 1, 1 );
+    let geometry = new PlaneGeometry( 1.77777, 1, 1 );
     let material = makeMaterial(video);
     let plane = new Mesh( geometry, material );
     return plane;
@@ -163,7 +169,7 @@ function makeVideo(webmSource:string) : HTMLVideoElement {
 
     video.preload = 'auto';
 
-    video.muted = true;
+    video.muted = false;
     return video;
 }
 
