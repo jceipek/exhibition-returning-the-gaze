@@ -2,16 +2,13 @@ import './main.css';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
 
-
-
-
 import * as Stats from "stats.js"
 let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
 import video1src from "./media/KW.webm";
-import drone from './models/drone1.glb';
+import drone from "./models/drone1.glb";
 
 // import video2src from "./media/V04 lowRES.webm";
 // import video3src from "./media/V05.webm";
@@ -31,6 +28,19 @@ let planeData = [
     // {pos: [1,0,5-8], rot:  [0,-15,0]},
     // {pos: [0,0,3-10], rot: [0,0,0]},
 ];
+
+
+const loader = new GLTFLoader();
+
+loader.load( drone, function ( file ) {
+    
+    let model = file.scene;
+
+      scene.add(model);
+      
+}, undefined, function ( error ) {
+    console.error( error );
+} );
 
 
 
