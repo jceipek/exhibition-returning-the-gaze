@@ -6,24 +6,24 @@ let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
-import video1src from "./media/V03.webm";
-import video2src from "./media/V04 lowRES.webm";
-import video3src from "./media/V05.webm";
-import video4src from "./media/V03.webm";
-import video5src from "./media/V06.webm";
+import video1src from "./media/KW.webm";
+// import video2src from "./media/V04 lowRES.webm";
+// import video3src from "./media/V05.webm";
+// import video4src from "./media/V03.webm";
+// import video5src from "./media/V06.webm";
 let videoSrcs = [
     video1src,
-    video2src,
-    video3src,
-    video4src,
-    video5src,
+    // video2src,
+    // video3src,
+    // video4src,
+    // video5src,
 ];
 let planeData = [
-    {pos: [-1,0,3-5], rot:  [0,45,0]},
-    {pos: [1,0,4-5], rot:  [0,-30,0]},
-    {pos: [-1,0,3-8], rot:  [0,35,0]},
-    {pos: [1,0,5-8], rot:  [0,-15,0]},
-    {pos: [0,0,3-10], rot: [0,0,0]},
+    {pos: [0,0,3-5], rot:  [0,0,0]},
+    // {pos: [1,0,4-5], rot:  [0,-30,0]},
+    // {pos: [-1,0,3-8], rot:  [0,35,0]},
+    // {pos: [1,0,5-8], rot:  [0,-15,0]},
+    // {pos: [0,0,3-10], rot: [0,0,0]},
 ];
 
 
@@ -94,7 +94,7 @@ function makeMaterial(video: HTMLVideoElement) {
 }
 
 function makePlane(video: HTMLVideoElement) {
-    let geometry = new PlaneGeometry( 1.77777, 1, 1 );
+    let geometry = new PlaneGeometry( 2.77777, 1, 1 );
     let material = makeMaterial(video);
     let plane = new Mesh( geometry, material );
     return plane;
@@ -105,7 +105,7 @@ let camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 
 
 let renderer = new WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
-renderer.setClearColor("black");
+renderer.setClearColor("red");
 document.body.appendChild( renderer.domElement );
 
 let vids = videoSrcs.map(makeVideo);
