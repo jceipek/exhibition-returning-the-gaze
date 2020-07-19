@@ -12,11 +12,11 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: 'src/index.html'
     }),
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: 'draco', to: 'draco' },
-      ],
-    })
+    // new CopyWebpackPlugin({
+    //   patterns: [
+    //     { from: 'draco', to: 'draco' },
+    //   ],
+    // })
   ],
   output: {
     filename: 'main.js',
