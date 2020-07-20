@@ -1,7 +1,7 @@
 import './main.css';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { Vector2, Vector3,BoxGeometry, Line, LineBasicMaterial, BufferAttribute, BufferGeometry, Material, Group, Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
+import { Vector2, Vector3,BoxGeometry, Line, LineBasicMaterial, BufferAttribute, BufferGeometry, Material, Group, Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat, Object3D } from "three";
 
 import * as Stats from "stats.js"
 let stats = new Stats();
@@ -22,7 +22,7 @@ const draco = new DRACOLoader()
 draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 draco.preload();
 
-import eyesSrc from "./media/KW.webm";
+import eyesSrc from "./media/eyes.webm";
 import video1src from "./media/KW.webm";
 import drone from "./models/drone1.glb";
 
@@ -48,14 +48,15 @@ let planeData = [
     // {pos: [0,0,3-10], rot: [0,0,0]},
 ];
 
+
 var material = new LineBasicMaterial( { color: 0x000000 } );
 
 var points = [];
-points.push( new Vector3(0, 0, -7 ) );
-points.push( new Vector3( 7, 4, 7 ) );
+points.push( new Vector3(7, 4 , -7 ) );
+points.push( new Vector3( 7, 4, 0 ) );
 
 points.push( new Vector3( 0, 0, -7 ) );
-points.push( new Vector3( 7, -4, 7 ) );
+points.push( new Vector3( 7, -4, 0 ) );
 
 points.push( new Vector3( 0, 0, -7 ) );
 points.push( new Vector3( -7, -4, 7 ) );
@@ -63,71 +64,81 @@ points.push( new Vector3( -7, -4, 7 ) );
 points.push( new Vector3( 0, 0, -7 ) );
 points.push( new Vector3( -7, 4, 7 ) );
 
-// points.push( new Vector3( 10, 0, 0 ) );
+
 
 
 var geometry1 = new BufferGeometry().setFromPoints( points );
 var line = new Line( geometry1, material );
+
 
 // 
 
 
 
 interface Drone {
-    group: Group
+    group: Group    
 }
 
-const drones : Drone[] = [];
 
 
-const myGeom = new BoxGeometry()
-const myMaterial = new MeshBasicMaterial()
-const myGroup = new Group()
-
-for ( let i = -5 ; i < 5 ; i ++ ) {
-  const myMesh = new Mesh(myGeom, myMaterial);
-  myGroup.add(myMesh);
-  myMesh.frustumCulled = false; 
-  myMesh.position.set(Math.random(),Math.random(),Math.random());
- 
-}
+const drones : Drone[]  = [];
 
 
 
 const loader = new GLTFLoader();
 loader.setDRACOLoader( draco );
 
+function adjustuvs(droneindex: number){
+    console.log('generatingfunction' , droneindex);
+return (node: any) => {
+    if(node  instanceof Mesh){
+        // node.material = node.material.clone(); 
+        console.log(node.material.name);
+    }
+    if (node instanceof Mesh && node.material.name === "screens") {
+        node.material = EyesMaterial;
+        let g: BufferGeometry = node.geometry;
+
+        // console.log(g.attributes.uv.array);
+        // console.log(g.attributes.uv);
+        
+        //offset of UV cordinate
+        const columns= 5;
+        const rows= 1;
+        const columnsWidth= 1/columns;
+        const rowsWidth= 1/rows;
+
+        let yOffset = (Math.floor (droneindex/columns))*rowsWidth;
+        let xOffset = (droneindex-columns*yOffset)*columnsWidth;
+        console.log ('xOffset=', xOffset, 'yoffset =', yOffset, 'droneindex= ',droneindex);
+        
+        let uvAttr : BufferAttribute = g.attributes.uv as BufferAttribute;
+        let arry = uvAttr.array as Float32Array;
+        for (let i = 0; i < uvAttr.array.length; i+=2) {
+            arry.set([uvAttr.array[i]+xOffset],i);
+            arry.set([uvAttr.array[i+1]+yOffset],i+1);
+        }
+        uvAttr.needsUpdate = true;
+    }
+}};
+
+
 loader.load( drone, function ( file ) {
     let model = file.scene;
-//    model.position.set(0,30,30);
-    drones.push({
-        group: model
-    });
-
-    file.scene.traverse((node) => {
-        if (node instanceof Mesh && node.material.name === "screens") {
-            node.material = EyesMaterial;
-            let g: BufferGeometry = node.geometry;
-
-            // console.log(g.attributes.uv.array);
-            // console.log(g.attributes.uv);
-            
-            //offset of UV cordinate
-            let xOffset = 0;
-            let yOffset = 0;
-            let uvAttr : BufferAttribute = g.attributes.uv as BufferAttribute;
-            let arry = uvAttr.array as Float32Array;
-            for (let i = 0; i < uvAttr.array.length; i+=2) {
-                arry.set([uvAttr.array[i]+xOffset],i);
-                arry.set([uvAttr.array[i+1]+yOffset],i+1);
-            }
-            uvAttr.needsUpdate = true;
-        }
-    });
-
-    scene.add(model);
-    // scene.add(myMesh);
-    scene.add( line );
+    for (let droneindex= 0; droneindex<10; droneindex++){
+            model = model.clone();
+            drones.push({
+                group: model
+            });
+            console.log(droneindex);
+            model.traverse(adjustuvs(droneindex));
+        
+        
+        
+            scene.add(model);
+            // scene.add(myMesh);
+           
+    }
       
 }, undefined, function ( error ) {
     console.error( error );
@@ -208,6 +219,7 @@ function makePlane(video: HTMLVideoElement) {
 }
 
 let scene = new Scene();
+
 let camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
 let renderer = new WebGLRenderer();
@@ -224,6 +236,7 @@ for (let i = 0; i < planes.length; i++) {
     planes[i].position.set(pos[0],pos[1], pos[2]);
     planes[i].rotation.set(0,rot[1]*2*Math.PI/360,0);
     scene.add( planes[i] );
+    scene.add( line );
 }
 // plane.rotation.set(Math.PI/3,Math.PI/3,Math.PI/3);
 
@@ -271,7 +284,7 @@ function makeVideo(webmSource:string) : HTMLVideoElement {
 
     video.preload = 'auto';
 
-    video.muted = true;
+    video.muted = false;
     return video;
 }
 
@@ -327,14 +340,23 @@ let startTs = Date.now();
 function renderLoop () {
     stats.begin();
 
+// for(let j=0; j<50; j++){
+//     let q= Math.random()*Math.floor(5);
+//     console.log('q=', q);
+// // }
 
+     
     for (let i = 0; i < drones.length; i++) {
-
-        drones[i].group.position.set(0,1,-2);
+        // console.log( 'drones number=', drones.length);
+        drones[i].group.position.set(Math.sin(i*1.3)+0.2,Math.sin(i*0.9)+1.1,i-6.5);
         drones[i].group.rotation.set(noise(0,(Date.now()-startTs)*0.001,0)*0.1, noise(0,(Date.now()-startTs)*0.001,0)*0.2,0);
-        // drones[i].group.position.set(0,noise((Date.now()-startTs)*0.001,0,0)*0.2,-2);
-        
-    }    
+    }   
+    // if(drones.length>0){
+    // drones[0].group.position.set(0,0,  (noise(0, 0,(Date.now()-startTs)*0.001)*0.1)/(camera.position.z-3));
+    // }
+    // if(drones.length>0){
+    // drones[1].group.position.set(-2.1,q,-2);
+    // }
 
     renderer.render(scene, camera);
     stats.end();
