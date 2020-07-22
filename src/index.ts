@@ -29,26 +29,19 @@ import drone from "./models/drone1.glb";
 const EyesVideo = makeVideo(eyesSrc);
 const EyesMaterial: Material = makeMaterial(EyesVideo);
 
-// import video2src from "./media/V04 lowRES.webm";
-// import video3src from "./media/V05.webm";
-// import video4src from "./media/V03.webm";
-// import video5src from "./media/V06.webm";
+
 let videoSrcs = [
     video1src,
-    // video2src,
-    // video3src,
-    // video4src,
-    // video5src,
+    
 ];
+
 let planeData = [
     {pos: [0,0,-7], rot:  [0,0,0]},
-    // {pos: [1,0,4-5], rot:  [0,-30,0]},
-    // {pos: [-1,0,3-8], rot:  [0,35,0]},
-    // {pos: [1,0,5-8], rot:  [0,-15,0]},
-    // {pos: [0,0,3-10], rot: [0,0,0]},
+
 ];
 
 
+//drawing lines
 var material = new LineBasicMaterial( { color: 0x000000 } );
 
 var points = [];
@@ -65,25 +58,16 @@ points.push( new Vector3( 0, 0, -7 ) );
 points.push( new Vector3( -7, 4, 7 ) );
 
 
-
-
 var geometry1 = new BufferGeometry().setFromPoints( points );
 var line = new Line( geometry1, material );
-
-
 // 
-
 
 
 interface Drone {
     group: Group    
 }
 
-
-
 const drones : Drone[]  = [];
-
-
 
 const loader = new GLTFLoader();
 loader.setDRACOLoader( draco );
@@ -197,7 +181,7 @@ function normalizeWheel(event: any) : any {
 
 (window as any).video1src = video1src;
 
-console.log("Hello World");
+// console.log("Hello World");
 
 function makeVideoTex(video: HTMLVideoElement) {
     let texture = new VideoTexture( video );
