@@ -8,7 +8,9 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
     WireframeGeometry,
     Object3D,
     Material, 
+    TextureLoader,
     BufferGeometry,
+    BufferAttribute,
     Line,Group,
     Matrix4, Vector3, ReinhardToneMapping } from "three";
 
@@ -16,10 +18,10 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 import maskLocations from "./masksLocation"
 import maskSrc from './models/test.glb';
 import video1src from "./media/KW.webm";
+import eyesSrc from "./media/eyes.webm";
 
-
-// const EyesVideo = makeVideo(eyesSrc);
-// const EyesMaterial: Material = makeMaterial(EyesVideo);
+const EyesVideo = makeVideo(eyesSrc);
+const EyesMaterial: Material = makeMaterial(EyesVideo);
 
 
 let videoSrcs = [
@@ -28,7 +30,7 @@ let videoSrcs = [
 ];
 
 
-
+//Debugging
 const DEBUG = {
     red: new LineBasicMaterial( { color: 0xff0000 } ),
     green: new LineBasicMaterial( { color: 0x00ff00 } ),
@@ -176,8 +178,16 @@ loader.load( maskSrc, function ( geometry ) {
         
         screens.lookAt(pos[0]+n.x,pos[2]-n.y,pos[1]+n.z);
         // screens.lookAt(pos[0]+v.x,pos[2]+v.y,pos[1]+v.z);
-        scene.add(screens);
-
+        // screens.clone(makeVideo)
+        let texture = new TextureLoader().load( "textures/1.jpg" );
+        let material = new MeshBasicMaterial( { map: texture } );
+        let cube = new Mesh( screens, material );
+        // let vids = videoSrcs.map(makeVideo);
+        //  screens.children = vids.map(makePlane);
+        // let scc= vids.map(makePlane);
+        scene.add(cube);
+        // scene.add(scc);
+        
         // This is the same as: 
         //let row = maskLocations[i]; 
         // let position = row[2];
@@ -217,12 +227,13 @@ function makeVideo(webmSource:string) : HTMLVideoElement {
     video.width = 640;
     video.height = 480;
     video.loop = true;
-
+    
     video.preload = 'auto';
-
+    
     video.muted = false;
     return video;
 }
+
 
 // let scene = new Scene();
 
@@ -233,6 +244,8 @@ renderer.toneMapping = ReinhardToneMapping;
 renderer.toneMappingExposure= 2.3;
 // renderer.shadowMap.enabled= true;
 document.body.appendChild( renderer.domElement );
+
+
 
 
 window.addEventListener("click", () => {
