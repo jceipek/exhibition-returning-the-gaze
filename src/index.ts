@@ -15,6 +15,19 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 
 import maskLocations from "./masksLocation"
 import maskSrc from './models/test.glb';
+import video1src from "./media/KW.webm";
+
+
+// const EyesVideo = makeVideo(eyesSrc);
+// const EyesMaterial: Material = makeMaterial(EyesVideo);
+
+
+let videoSrcs = [
+    video1src,
+    
+];
+
+
 
 const DEBUG = {
     red: new LineBasicMaterial( { color: 0xff0000 } ),
@@ -172,6 +185,46 @@ loader.load( maskSrc, function ( geometry ) {
 }, undefined, function ( error ) {
     console.error( error );
 } );
+
+
+function makeVideoTex(video: HTMLVideoElement) {
+    let texture = new VideoTexture( video );
+    texture.minFilter = LinearFilter;
+    texture.magFilter = LinearFilter;
+    texture.format = RGBFormat;
+    return texture;
+}
+
+function makeMaterial(video: HTMLVideoElement) {
+    return new MeshBasicMaterial( {map: makeVideoTex(video)} );
+}
+
+function makePlane(video: HTMLVideoElement) {
+    let geometry = new PlaneGeometry( 1.77777, 1, 1 );
+    let material = makeMaterial(video);
+    let plane = new Mesh( geometry, material );
+    return plane;
+}
+
+function makeVideo(webmSource:string) : HTMLVideoElement {
+    let video = document.createElement("video");
+    if (video.canPlayType("video/webm")) {
+        video.src = webmSource;
+    } else {
+        // Not supported
+    }
+    
+    video.width = 640;
+    video.height = 480;
+    video.loop = true;
+
+    video.preload = 'auto';
+
+    video.muted = false;
+    return video;
+}
+
+// let scene = new Scene();
 
 let renderer = new WebGLRenderer({antialias: true});
 renderer.setSize( window.innerWidth, window.innerHeight );
