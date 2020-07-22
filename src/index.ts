@@ -6,27 +6,28 @@ let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
-import video1src from "./media/V03.webm";
-import video2src from "./media/V04 lowRES.webm";
-import video3src from "./media/V05.webm";
-import video4src from "./media/V03.webm";
-import video5src from "./media/V06.webm";
+import video1src from "./media/Memo2.webm";
+import video2src from "./media/Memo2pair.webm";
+import video3src from "./media/Memo3.webm";
+import video4src from "./media/Memo3pair.webm";
+import video5src from "./media/Memo4.webm";
+import video6src from "./media/Memo4pair.webm";
 let videoSrcs = [
     video1src,
     video2src,
     video3src,
     video4src,
     video5src,
+    video6src,
 ];
 let planeData = [
-    {pos: [-1,0,3-5], rot:  [0,45,0]},
-    {pos: [1,0,4-5], rot:  [0,-30,0]},
-    {pos: [-1,0,3-8], rot:  [0,35,0]},
-    {pos: [1,0,5-8], rot:  [0,-15,0]},
-    {pos: [0,0,3-10], rot: [0,0,0]},
+    {pos: [-.5,0,3-5], rot:  [0,35,0]},
+    {pos: [.5,0,3-5], rot:  [0,-35,0]},
+    {pos: [-0.7,0,5-9], rot:  [0,35,0]},
+    {pos: [0.7,0,5-9], rot:  [0,-35,0]},
+    {pos: [-1.0,0,5-11], rot:  [0,35,0]},
+    {pos: [1.0,0,5-11], rot:  [0,-35,0]},
 ];
-
-
 
 // Reasonable defaults
 const PIXEL_STEP  = 10;
@@ -78,8 +79,14 @@ function normalizeWheel(event: any) : any {
 
 
 (window as any).video1src = video1src;
+(window as any).video2src = video1src;
+(window as any).video3src = video1src;
+(window as any).video4src = video1src;
+(window as any).video5src = video1src;
+(window as any).video6src = video1src;
 
-console.log("Hello World");
+
+// console.log("Hello World");
 
 function makeVideoTex(video: HTMLVideoElement) {
     let texture = new VideoTexture( video );
@@ -94,7 +101,7 @@ function makeMaterial(video: HTMLVideoElement) {
 }
 
 function makePlane(video: HTMLVideoElement) {
-    let geometry = new PlaneGeometry( 1.77777, 1, 1 );
+    let geometry = new PlaneGeometry( 1, 1, 1 );
     let material = makeMaterial(video);
     let plane = new Mesh( geometry, material );
     return plane;
