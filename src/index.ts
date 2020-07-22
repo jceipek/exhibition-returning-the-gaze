@@ -16,7 +16,7 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 import maskLocations from "./masksLocation"
 
 import hallwaySrc from './models/hall04.glb';
-import maskSrc from './models/head03.glb';
+import maskSrc from './models/test.glb';
 
 const DEBUG = {
     red: new LineBasicMaterial( { color: 0xff0000 } ),
@@ -145,7 +145,7 @@ loader.load( hallwaySrc, function ( file ) {
     //     }
     //  } );
 
-      scene.add(model);
+    //   scene.add(model);
       
 
 }, undefined, function ( error ) {
