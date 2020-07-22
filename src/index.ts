@@ -14,8 +14,6 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 
 
 import maskLocations from "./masksLocation"
-
-import hallwaySrc from './models/hall04.glb';
 import maskSrc from './models/test.glb';
 
 const DEBUG = {
@@ -128,32 +126,6 @@ light2.castShadow= true;
 light2.position.set(0,-5,0);
 scene.add(light2);
 
-// var directionalLight = new DirectionalLight( 0xffffff, 0.6 );
-// directionalLight.position.set(0,1,0);
-// scene.add( directionalLight );
-
-loader.load( hallwaySrc, function ( file ) {
-    
-    let model = file.scene;
-
-    // file.scene.traverse( function( object ) {
-    //     if ( object instanceof Mesh) { 
-    //         let  wireframe = new WireframeGeometry( object.geometry );
-    //         console.log(object.rotation);
-    //         let mesh= new Mesh(wireframe);
-    //         scene.add (mesh);
-    //     }
-    //  } );
-
-    //   scene.add(model);
-      
-
-}, undefined, function ( error ) {
-    console.error( error );
-} );
-
-
-
 
 
 // let geometry= new TorusGeometry(0.06,0.01,2,100);
@@ -161,12 +133,12 @@ loader.load( hallwaySrc, function ( file ) {
 // let torus= new Mesh (geometry,material);
 // for( let i= 0; i<maskLocations.length;i++){
 //     let pos = maskLocations[i][2];
-//     // let currMask = torus.clone();
+//     // let screens = torus.clone();
 //     let geometry= new TorusGeometry(0.06,0.01,2,100);
 //     let material= new MeshBasicMaterial({color: 0xFF00CC});
-//     let currMask= new Mesh (geometry,material);
-//     currMask.position.set(pos[0],pos[1],pos[2]);
-//     scene.add(currMask);
+//     let screens= new Mesh (geometry,material);
+//     screens.position.set(pos[0],pos[1],pos[2]);
+//     scene.add(screens);
 // }
 
 
@@ -181,48 +153,17 @@ loader.load( maskSrc, function ( geometry ) {
     
     for( let i= 0; i<maskLocations.length;i++){
         let pos = maskLocations[i][2];
-        let currMask = model.clone();
-        currMask.position.set(pos[0],pos[2],pos[1]);
+        let screens = model.clone();
+        screens.position.set(pos[0],pos[2],pos[1]);
         
         u.set(maskLocations[i][0][0], maskLocations[i][0][2], maskLocations[i][0][1]); //side
         v.set(maskLocations[i][1][0], maskLocations[i][1][2], maskLocations[i][1][1]); //up
         n.crossVectors(v,u); //normal
 
-        scene.add(makeDebugLines([pos[0],pos[2],pos[1]], u, v, n));
         
-        // m.set( 
-        //     n.x, n.y, n.z, 0,
-        //     v.x, v.y, v.z, 0,
-        //     u.x, u.y, u.z, 0,
-        //     0, 0, 0, 1 );
-
-        // m.set( 
-        //     0, 0.707107, 0.707107, 0,
-        //     0, 0.707107, -0.707107, 0,
-        //     0, 0, 1, 0,
-        //     0, 0, 0, 1 );
-
-        // m.multiply(currMask.matrix);
-        // currMask.matrix = m;
-        // m.set( 
-        //     u.x, v.x, n.x, 0,
-        //     u.y, v.y, n.y, 0,
-        //     u.z, v.z, n.z, 0,
-        //     0, 0, 0, 1 );
-        // m.set( 
-        //     1, 0, 0, 0,
-        //     0, 1, 0, 0,
-        //     0, 0, 1, 0,
-        //     0, 0, 0, 1 );
-            
-        // currMask.setRotationFromMatrix(m);
-
-
-        // currMask.applyMatrix4(m);
-
-        currMask.lookAt(pos[0]+n.x,pos[2]-n.y,pos[1]+n.z);
-        // currMask.lookAt(pos[0]+v.x,pos[2]+v.y,pos[1]+v.z);
-        scene.add(currMask);
+        screens.lookAt(pos[0]+n.x,pos[2]-n.y,pos[1]+n.z);
+        // screens.lookAt(pos[0]+v.x,pos[2]+v.y,pos[1]+v.z);
+        scene.add(screens);
 
         // This is the same as: 
         //let row = maskLocations[i]; 
