@@ -181,11 +181,12 @@ loader.load( maskSrc, function ( geometry ) {
         // screens.clone(makeVideo)
         let texture = new TextureLoader().load( "textures/1.jpg" );
         let material = new MeshBasicMaterial( { map: texture } );
-        let cube = new Mesh( screens, material );
+        // screens.traverse();
+        // let cube = new Mesh( screens, material );
         // let vids = videoSrcs.map(makeVideo);
         //  screens.children = vids.map(makePlane);
         // let scc= vids.map(makePlane);
-        scene.add(cube);
+        scene.add(screens);
         // scene.add(scc);
         
         // This is the same as: 
