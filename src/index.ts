@@ -6,12 +6,12 @@ let stats = new Stats();
 stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 document.body.appendChild( stats.dom );
 
-import video1src from "./media/Memo2.webm";
-import video2src from "./media/Memo2pair.webm";
-import video3src from "./media/Memo3.webm";
-import video4src from "./media/Memo3pair.webm";
-import video5src from "./media/Memo4.webm";
-import video6src from "./media/Memo4pair.webm";
+import video3src from "./media/Memo2.webm";
+import video4src from "./media/Memo2pair.webm";
+import video5src from "./media/Memo3.webm";
+import video6src from "./media/Memo3pair.webm";
+import video1src from "./media/Memo4.webm";
+import video2src from "./media/Memo4pair.webm";
 let videoSrcs = [
     video1src,
     video2src,
@@ -78,12 +78,12 @@ function normalizeWheel(event: any) : any {
 
 
 
-(window as any).video1src = video1src;
-(window as any).video2src = video1src;
-(window as any).video3src = video1src;
-(window as any).video4src = video1src;
-(window as any).video5src = video1src;
-(window as any).video6src = video1src;
+// (window as any).video1src = video1src;
+// (window as any).video2src = video1src;
+// (window as any).video3src = video1src;
+// (window as any).video4src = video1src;
+// (window as any).video5src = video1src;
+// (window as any).video6src = video1src;
 
 
 // console.log("Hello World");
