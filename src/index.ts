@@ -3,6 +3,7 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 
 import { Halls, Hall, HallState } from "./common"
 import * as learningToSeeHall from "./halls/learningToSee"
+import * as masksHall from "./halls/masks"
 
 import * as Stats from "stats.js"
 let stats = new Stats();
@@ -13,7 +14,7 @@ const halls: Halls = {
     renderer: new WebGLRenderer(),
     state: HallState.Init,
     currHallIdx: 0,
-    allHalls: [learningToSeeHall, learningToSeeHall],
+    allHalls: [masksHall,learningToSeeHall],
 }
 
 function renderLoop() {

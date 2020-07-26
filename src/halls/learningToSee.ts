@@ -30,6 +30,7 @@ const thisHall: LearningToSeeHall = {
     },
     setup: async function (): Promise<void> {
         function postLoad () {
+            thisHall.state.progressFrac= 0;
             thisHall.state.camera.position.z = -1;
             registerEventListeners();
         }
