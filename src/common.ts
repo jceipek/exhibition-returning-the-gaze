@@ -2,6 +2,7 @@ import { WebGLRenderer } from "three";
 
 export interface Hall {
     setup(): Promise<void>,
+    onEnter(renderer: WebGLRenderer): void,
     render(renderer: WebGLRenderer): void,
     teardown(): Promise<void>,
     resize(): void,

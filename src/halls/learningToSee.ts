@@ -119,6 +119,9 @@ const thisHall: LearningToSeeHall = {
             }
         });
     },
+    onEnter: function (renderer: WebGLRenderer) {
+        renderer.setClearColor("black");
+    },
     render: function (renderer) {
         renderer.render(thisHall.state.scene, thisHall.state.camera);
     },

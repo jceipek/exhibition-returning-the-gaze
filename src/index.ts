@@ -4,6 +4,7 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 import { Halls, Hall, HallState } from "./common"
 import * as learningToSeeHall from "./halls/learningToSee"
 import * as masksHall from "./halls/masks"
+import * as droneHall from "./halls/droneHall"
 
 import * as Stats from "stats.js"
 let stats = new Stats();
@@ -14,7 +15,7 @@ const halls: Halls = {
     renderer: new WebGLRenderer(),
     state: HallState.Init,
     currHallIdx: 0,
-    allHalls: [masksHall,learningToSeeHall],
+    allHalls: [ masksHall,learningToSeeHall, droneHall],
 }
 
 function renderLoop() {
@@ -41,6 +42,7 @@ function renderLoop() {
             {
                 halls.state = HallState.EnteringHall;
                 halls.allHalls[halls.currHallIdx].setup().then(() => {
+                    halls.allHalls[halls.currHallIdx].onEnter(halls.renderer);
                     halls.state = HallState.InHall;
                 });
             } break;
@@ -57,11 +59,12 @@ function renderLoop() {
                     halls.state = HallState.StartedLeavingHall;
                 }
             } break;
-        case HallState.StartedLeavingHall:
-            halls.state = HallState.LeavingHall;
-            {
-                halls.allHalls[halls.currHallIdx].teardown().then(() => {
+            case HallState.StartedLeavingHall:
+                halls.state = HallState.LeavingHall;
+                {
+                    halls.allHalls[halls.currHallIdx].teardown().then(() => {
                     halls.currHallIdx = (halls.currHallIdx + 1) % halls.allHalls.length;
+                    console.log(`Now entering hall: ${halls.currHallIdx}`);
                     halls.state = HallState.StartedEnteringHall;
                 });
             } break;
