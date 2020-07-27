@@ -31,6 +31,7 @@ interface DroneHall extends Hall {
 
 let startTs = Date.now();
 const thisHall: DroneHall = {
+    introClassName: "js-drones-hall",
     state: {
         videoSrcs: [],
         planeData: [],
@@ -45,7 +46,7 @@ const thisHall: DroneHall = {
     setup: async function (): Promise<void> {
         function postLoad() {
             thisHall.state.progressFrac = 0;
-            thisHall.state.camera.position.z = -1;
+            thisHall.state.camera.position.set(0, 0, 0);
             registerEventListeners();
         }
         return new Promise<void>((resolve) => {

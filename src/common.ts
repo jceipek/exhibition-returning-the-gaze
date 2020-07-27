@@ -1,6 +1,7 @@
 import { WebGLRenderer } from "three";
 
 export interface Hall {
+    introClassName: string,
     setup(): Promise<void>,
     onEnter(renderer: WebGLRenderer): void,
     render(renderer: WebGLRenderer): void,
@@ -11,8 +12,10 @@ export interface Hall {
 
 export enum HallState {
     Init,
-    StartedEnteringHall,
-    EnteringHall,
+    Landing,
+    StartedLoadingHall,
+    LoadingHall,
+    WaitingToEnterHall,
     InHall,
     StartedLeavingHall,
     LeavingHall,

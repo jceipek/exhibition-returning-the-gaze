@@ -2,10 +2,10 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import video1src from "../media/V03.webm";
-import video2src from "../media/V04 lowRES.webm";
-import video3src from "../media/V05.webm";
-import video4src from "../media/V03.webm";
+import video1src from "../media/V06.webm";
+import video2src from "../media/V06.webm";
+import video3src from "../media/V06.webm";
+import video4src from "../media/V06.webm";
 import video5src from "../media/V06.webm";
 
 interface MasksHall extends Hall {
@@ -21,6 +21,7 @@ interface MasksHall extends Hall {
 }
 
 const thisHall: MasksHall = {
+    introClassName: "js-eyes-hall",
     state: {
         videoSrcs: [],
         planeData: [],
@@ -34,7 +35,6 @@ const thisHall: MasksHall = {
         function postLoad () {
             thisHall.state.progressFrac= 0;
             thisHall.state.camera.position.set(0, 0, 0);
-            // thisHall.state.camera.position.z = 0;
             registerEventListeners();
         }
         return new Promise<void>((resolve) => {
@@ -56,11 +56,11 @@ const thisHall: MasksHall = {
                     video5src,
                 ];
                 state.planeData = [
-                    {pos: [-1,0,3-5], rot:  [0,45,0]},
-                    {pos: [1,0,4-5], rot:  [0,-30,0]},
-                    {pos: [-1,0,3-8], rot:  [0,35,0]},
-                    {pos: [1,0,5-8], rot:  [0,-15,0]},
-                    {pos: [0,0,3-10], rot: [0,0,0]},
+                    {pos: [-1,0,3-5-1], rot:  [0,45,0]},
+                    {pos: [1,0,4-5-1], rot:  [0,-30,0]},
+                    {pos: [-1,0,3-8-1], rot:  [0,35,0]},
+                    {pos: [1,0,5-8-1], rot:  [0,-15,0]},
+                    {pos: [0,0,3-10-1], rot: [0,0,0]},
                 ];
                 
                 Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
@@ -164,7 +164,7 @@ async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
             video.muted = true;
     
             function onCanPlay () {
-                console.log(video);
+                console.log(webmSource);
                 resolve(video);
                 video.removeEventListener("canplay", onCanPlay);
             }
