@@ -5,6 +5,7 @@ import { Halls, Hall, HallState } from "./common"
 import * as learningToSeeHall from "./halls/learningToSee"
 import * as masksHall from "./halls/masks"
 import * as droneHall from "./halls/droneHall"
+import * as laurenHall from "./halls/lauren"
 
 import * as Stats from "stats.js"
 let stats = new Stats();
@@ -15,22 +16,7 @@ const halls: Halls = {
     renderer: new WebGLRenderer(),
     state: HallState.Init,
     currHallIdx: 0,
-    allHalls: [ masksHall,learningToSeeHall,droneHall],
-}
-
-function resizeRenderingViewToFillScreen(canvas: HTMLCanvasElement) {
-  // Lookup the size the browser is displaying the canvas.
-  var displayWidth  = canvas.clientWidth;
-  var displayHeight = canvas.clientHeight;
- 
-  // Check if the canvas is not the same size.
-  if (canvas.width  != displayWidth ||
-      canvas.height != displayHeight) {
- 
-    // Make the canvas the same size
-    canvas.width  = displayWidth;
-    canvas.height = displayHeight;
-  }
+    allHalls: [ masksHall,learningToSeeHall,droneHall, laurenHall],
 }
 
 function getTimestamp () {
@@ -43,18 +29,42 @@ loadingIndicator.classList.add("js-loading");
 loadingIndicator.classList.add("loading");
 let loadingState = getTimestamp();
 
+let navigation = document.getElementsByClassName("navigation")[0];
+navigation.addEventListener("click", () => {
+    if (halls.state === HallState.InHall) {
+        halls.state = HallState.StartedLeavingHall;
+    }
+});
+
 window.addEventListener("click", () => {
     if (halls.state === HallState.WaitingToEnterHall) {
         halls.state = HallState.InHall;
         document.body.removeChild(loadingIndicator);
-        let hallIntro = document.getElementsByClassName(halls.allHalls[halls.currHallIdx].introClassName)[0];
-        hallIntro.classList.add("hidden");
+        halls.allHalls[halls.currHallIdx].onEnter(halls.renderer);
+        setHallIntroVisibility(false);
     } else if (halls.state === HallState.Landing) {
-        let hallIntro = document.getElementsByClassName("js-landing")[0];
-        hallIntro.classList.add("hidden");
+        let landingBlock = document.getElementsByClassName("js-landing")[0];
+        landingBlock.classList.add("hidden");
         halls.state = HallState.StartedLoadingHall;
     }
 });
+
+function currHallHasIntro(): boolean {
+    let introClass = halls.allHalls[halls.currHallIdx].introClassName;
+    return introClass? true : false;
+}
+
+function setHallIntroVisibility(state: boolean) {
+    let introClass = halls.allHalls[halls.currHallIdx].introClassName;
+    if (introClass) {
+        let hallIntro = document.getElementsByClassName(introClass)[0];
+        if (state) {
+            hallIntro.classList.remove("hidden");
+        } else {
+            hallIntro.classList.add("hidden");
+        }
+    }    
+}
 
 function handleHalls() {
     switch (halls.state) {
@@ -65,7 +75,6 @@ function handleHalls() {
                 renderer.setClearColor("black");
                 renderer.domElement.classList.add("main-view");
                 document.body.appendChild(renderer.domElement);
-                // resizeRenderingViewToFillScreen(renderer.domElement);
 
                 window.addEventListener("resize", () => {
                     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -83,16 +92,22 @@ function handleHalls() {
             } break;
         case HallState.StartedLoadingHall:
             {
-                let hallIntro = document.getElementsByClassName(halls.allHalls[halls.currHallIdx].introClassName)[0];
-                hallIntro.classList.remove("hidden");
-                document.body.appendChild(loadingIndicator);
-                loadingState = getTimestamp();
+                let hasIntro = currHallHasIntro();
+                if (hasIntro) {                    
+                    setHallIntroVisibility(true);
+                    document.body.appendChild(loadingIndicator);
+                    loadingState = getTimestamp();
+                } 
 
                 halls.state = HallState.LoadingHall;
                 halls.allHalls[halls.currHallIdx].setup().then(() => {
-                    loadingIndicator.innerText = "Click to Enter";
-                    halls.allHalls[halls.currHallIdx].onEnter(halls.renderer);
-                    halls.state = HallState.WaitingToEnterHall;
+                    if (hasIntro) {
+                        loadingIndicator.innerText = "Click to Enter";
+                        halls.state = HallState.WaitingToEnterHall;
+                    } else {
+                        halls.state = HallState.InHall;
+                        halls.allHalls[halls.currHallIdx].onEnter(halls.renderer);
+                    }
                 });
             } break;
         case HallState.LoadingHall:

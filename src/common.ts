@@ -1,7 +1,7 @@
 import { WebGLRenderer } from "three";
 
 export interface Hall {
-    introClassName: string,
+    introClassName: string | null,
     setup(): Promise<void>,
     onEnter(renderer: WebGLRenderer): void,
     render(renderer: WebGLRenderer): void,

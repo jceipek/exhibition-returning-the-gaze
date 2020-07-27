@@ -1,6 +1,15 @@
 @import "../node_modules/normalize.css/normalize.css";
 @import url('https://fonts.googleapis.com/css2?family=Cinzel&family=Montserrat&display=swap');
 
+.navigation {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: black;
+    z-index: 5;
+    padding: 1rem;
+    cursor: pointer;
+}
 
 .logos {
     padding-top: 4rem;
@@ -50,6 +59,16 @@ body {
     top: 0;
     width: 100vw;
     min-height: 100vh;
+}
+
+.iframe-hall {
+    z-index: 2;
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    border: 0;
 }
 
 .interstitial {
