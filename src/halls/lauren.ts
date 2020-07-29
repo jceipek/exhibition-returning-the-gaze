@@ -15,7 +15,7 @@ const thisHall: LaurenHall = {
         return new Promise<void>((resolve) => {
             let iframe = document.createElement("iframe");
             iframe.classList.add("iframe-hall");
-            iframe.src = "https://get-lauren.com/#?";
+            iframe.src = "/lauren";
             // iframe.width = `${window.innerWidth}px`;
             // iframe.height = `${window.innerHeight}px`;
             thisHall.state.iframe = iframe;    

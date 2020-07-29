@@ -140,7 +140,7 @@ const thisHall: DroneHall = {
                                 planes[i].position.set(pos[0], pos[1], pos[2]);
                                 planes[i].rotation.set(0, rot[1] * 2 * Math.PI / 360, 0);
                                 state.scene.add(planes[i]);
-                                state.scene.add(line);
+                                // state.scene.add(line);
                             }
                             resolve(videos);
                         });
@@ -169,7 +169,7 @@ const thisHall: DroneHall = {
         let drones = state.drones;
         for (let i = 0; i < drones.length; i++) {
             // console.log( 'drones number=', drones.length);
-            drones[i].group.position.set(Math.sin(i * 1.3) + 0.2, Math.sin(i * 0.9) + 1.1, i - 6.5);
+            drones[i].group.position.set(Math.sin(i * 1.3) + 0.2, Math.sin(i * 0.9) + 1.1, i - 7);
             drones[i].group.rotation.set(noise(0, (Date.now() - startTs) * 0.001, 0) * 0.1, noise(0, (Date.now() - startTs) * 0.001, 0) * 0.2, 0);
         }
 

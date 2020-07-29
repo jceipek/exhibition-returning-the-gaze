@@ -96,6 +96,7 @@ const thisHall: MasksHall = {
     resize: function () {
         thisHall.state.camera.aspect = window.innerWidth / window.innerHeight;
         thisHall.state.camera.updateProjectionMatrix();
+        
     },
     teardown: async function () : Promise<void> {
         return new Promise<void>((resolve) => {

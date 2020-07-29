@@ -1,5 +1,5 @@
 @import "../node_modules/normalize.css/normalize.css";
-@import url('https://fonts.googleapis.com/css2?family=Cinzel&family=Montserrat&display=swap');
+/* @import url("https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Raleway&display=swap" rel="stylesheet"); */
 
 .navigation {
     position: absolute;
@@ -44,7 +44,7 @@ body {
 }
 
 .intro>p {
-    font-family: 'Montserrat', sans-serif;
+    font-family: 'Cinzel', serif;
 }
 
 .main-view {
@@ -87,6 +87,16 @@ body {
     max-width: 40rem;
     margin-left: auto;
     margin-right: auto;
+}
+
+.copyrigh {
+    padding: 0 1rem;
+    margin-top: 5rem;
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+    /* font-family: 'Lato', sans-serif; */
+    /* font-size: 1; */
 }
 
 p {

@@ -16,7 +16,7 @@ const halls: Halls = {
     renderer: new WebGLRenderer(),
     state: HallState.Init,
     currHallIdx: 0,
-    allHalls: [ masksHall,learningToSeeHall,droneHall, laurenHall],
+    allHalls: [ droneHall, masksHall,learningToSeeHall,laurenHall],
 }
 
 function getTimestamp () {

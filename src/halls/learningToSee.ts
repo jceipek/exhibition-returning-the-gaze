@@ -3,8 +3,8 @@ import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
 import videoDual1src from "../media/Memo6.webm";
-import videoDual2src from "../media/Memo6.webm";
-import videoDual3src from "../media/Memo6.webm";
+import videoDual2src from "../media/Memo2.webm";
+import videoDual3src from "../media/Memo3.webm";
 
 interface LearningToSeeHall extends Hall {
     state: {
@@ -52,8 +52,8 @@ const thisHall: LearningToSeeHall = {
                     videoDual3src,
                 ];
                 state.planeData = [
-                    { pos: [-.5, 0, 3 - 5], rot: [0, 35, 0] },
-                    { pos: [.5, 0, 3 - 5], rot: [0, -35, 0] },
+                    { pos: [-.55, 0, 3 - 5], rot: [0, 35, 0] },
+                    { pos: [.55, 0, 3 - 5], rot: [0, -35, 0] },
                     { pos: [-0.7, 0, 5 - 9], rot: [0, 35, 0] },
                     { pos: [0.7, 0, 5 - 9], rot: [0, -35, 0] },
                     { pos: [-1.0, 0, 5 - 11], rot: [0, 35, 0] },
