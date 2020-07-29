@@ -266,8 +266,8 @@ $(document).ready(function() {
   });
 
   // ENTER!
-  $('#overlay').click(function() {
-    $('#overlay').hide(); 
+  $('#js-lauren-hall').click(function() {
+    $('#js-lauren-hall').hide(); 
     clearInterval(dotInterval); 
     if (videoPlaying && !hideVideo) player.play();
     $('#lauren-video')[0].play();

@@ -1,0 +1,76 @@
+@import "../node_modules/normalize.css/normalize.css";
+/* @import url("https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Raleway&display=swap" rel="stylesheet"); */
+
+.loading {
+    position: fixed;
+    bottom: 0;
+    color: white;
+    background-color: #333;
+    width: 100vw;
+    z-index: 2;
+    text-align: center;
+    padding: 1rem;
+}
+
+.interstitial, .landing {
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    min-height: 100vh;
+}
+
+/* Fonts */
+.intro>p, .interstitial, .intro h2 {
+    font-family: 'Cinzel', serif;
+}
+
+.interstitial {
+    background-color: black;
+    color: white;
+}
+
+.landing {
+    background-color: white;
+    color: black;
+}
+
+h2, .entering, .credits, .credits>.name {
+    text-align: center;
+}
+
+h2 {
+    text-transform: uppercase;
+    margin: 0;
+}
+
+h3 {
+    margin: 0.5rem 0 0 0;
+    color: #777;
+}
+
+p {
+    text-align: justify;
+    text-justify: newspaper;
+}
+
+.intro {
+    padding: 0 1rem;
+    margin-top: 5rem;
+    max-width: 40rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.credits, .entering {
+    text-transform: uppercase;
+}
+
+.name {
+    margin: 0;
+}
+
+.entering {
+    color: #777;
+    margin: 0.5rem;
+}

@@ -20,6 +20,7 @@
   <script src="https://use.typekit.net/heg8frm.js"></script>
   <script>try{Typekit.load({ async: true });}catch(e){}</script>
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <link rel='stylesheet' href='/main.css'>
   <link rel='stylesheet' href='/lauren/style.css'><link href="https://fonts.googleapis.com/css?family=Frank+Ruhl+Libre" rel="stylesheet">
 
   <!-- other libraries -->
@@ -58,13 +59,43 @@
   </nav>
   <img src='/lauren/img/back.png' id='closeHome'>
 
-  <div id='overlay'>
-    <div id='overlay-text'>
-      <span id='tagline'>THE HUMAN INTELLIGENT SMART HOME</span><br>
-      <span id='title'>LAUREN</span><br>
+  <div id="js-lauren-hall" class="interstitial">
+    <div class="intro">
+        <p class="entering">You are entering the</p>
+        <h2>Hall of Surveillance</h2>
+        <p>LAUREN is a human intelligent smart home. Lauren will visit your home,
+          deploy a series of smart devices, and watch over you remotely 24/7.
+          Lauren will control your home for you, attempting to be better than an AI,
+          understanding you as a person. You will be able to interact with her by calling her name,
+          but she will also do things for you without your asking.
+          She will learn faster than an algorithm, adapting to your desires and anticipating your needs.</p>
+
+        <h2>How do I get LAUREN?</h2>
+        <p>You can sign up for LAUREN by clicking the "GET LAUREN" link below.
+          You will be asked to record a short video explaining why you want to try LAUREN.
+          Lauren will follow up with you to talk more about it, and if you like,
+          schedule a time to try LAUREN. Your trial will take place in your own home and
+          will last three days.</p>
+  
+        <h2>How does it work?</h2>
+        <p>LAUREN begins with Lauren physically visiting your home and installing a
+          collection of networked device objects, including cameras, sensors, outlets,
+          faucets, door locks, lights, and other electronic devices. She will discuss with
+          you what you hope to get from LAUREN.<br><br>
+          From that point on, LAUREN remotely watches over you 24/7 using the installed cameras and
+          sensors. You are able to direct via voice command as you would Siri or Alexa.
+          However, she can also anticipate your needs and learn to accommodate your desires.
+          LAUREN will control your home remotely using the installed networked switches and devices.</p>
+
+        <div class="credits">
+            <h3>Artist</h3>
+            <p class="name">Lauren Lee McCarthy</p>
+        </div>
+
+        <span id='loading'>LOADING<div id='loadingdots'></div></span>
     </div>
-    <span id='loading'>LOADING<div id='loadingdots'></div></span>
-  </div>
+</div>
+
   <div id='overlay-gradient'></div>
 
   <div id='learnmore-plate' class='plate'>
@@ -195,7 +226,6 @@
                   animation__scaleIn='property: scale; dur: 500; easing: linear; to: 1 1 1; startEvents: scaleIn'>
           <a-entity id='${src}-sphere' 
                     class='link collidable' 
-                    link='href: http://lauren-mccarthy.com'
                     geometry='primitive: sphere; radius: 0.7; segmentsHeight: 50;'
                     rotation='-90 0 0'
                     material='shader: flat; color: #bababa; src: ${src}-thumb; side: back;'
@@ -233,7 +263,7 @@
           <a-entity template='src: #link' data-src='#kristin'></a-entity>
           <a-entity template='src: #link' data-src='#xiuling'></a-entity>
           <a-entity template='src: #link' data-src='#miriam'></a-entity>
-          <a-entity template='src: #exit' data-src='#hall'></a-entity>
+          <a-entity id='exit-entity' template='src: #exit' data-src='#hall'></a-entity>
           <a-entity template='src: #link' data-src='#jackmark'></a-entity>
         </a-entity>
 

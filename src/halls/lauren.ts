@@ -2,14 +2,35 @@ import { Halls, Hall, HallState } from "../common"
 
 interface LaurenHall extends Hall {
     state: {
-        iframe: HTMLIFrameElement | null
+        iframe: HTMLIFrameElement | null,
+        shouldLeave: boolean,
+    }
+}
+
+function onMessageFromIframe(event: MessageEvent) {
+    if (event.origin === "http://localhost:8080" ||
+        event.origin === "https://returningthegaze.com") {
+        if (event.data === "leaveLaurenHall") {
+            thisHall.state.shouldLeave = true;
+        }
+    } else {
+        console.log("Ignoring message from", event.origin);
+    }
+}
+
+function toggleEventListeners (state: boolean) {
+    if (state) {
+        window.addEventListener("message", onMessageFromIframe, false);
+    } else {
+        window.removeEventListener("message", onMessageFromIframe);
     }
 }
 
 const thisHall: LaurenHall = {
     introClassName: null,
     state: {
-        iframe: null
+        iframe: null,
+        shouldLeave: false,
     },
     setup: async function (): Promise<void> {
         return new Promise<void>((resolve) => {
@@ -18,7 +39,9 @@ const thisHall: LaurenHall = {
             iframe.src = "/lauren";
             // iframe.width = `${window.innerWidth}px`;
             // iframe.height = `${window.innerHeight}px`;
-            thisHall.state.iframe = iframe;    
+            thisHall.state.iframe = iframe;
+            thisHall.state.shouldLeave = false;
+            toggleEventListeners(true);
             resolve();
             // iframe.addEventListener("load", () => {
             // });
@@ -41,13 +64,18 @@ const thisHall: LaurenHall = {
     },
     teardown: async function () : Promise<void> {
         return new Promise<void>((resolve) => {
+            toggleEventListeners(false);
             let iframe = thisHall.state.iframe;
             document.body.removeChild(iframe);
             resolve();
         });
     },
     getProgressFrac: function (): number {
-        return 0;
+        if (thisHall.state.shouldLeave) {
+            return 1;
+        } else {
+            return 0;
+        }
     },
 }
 export = thisHall;

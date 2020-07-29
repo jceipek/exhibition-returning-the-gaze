@@ -1,6 +1,13 @@
 AFRAME.registerComponent('setup', {
   schema: {},
   init: function () {
+
+    // Register navigating to the next hall
+    document.querySelector('#exit-entity').addEventListener('click', function (evt) {
+      // Note that "*" as the target allows anyone to embed and get the message
+      window.parent.postMessage("leaveLaurenHall", "*");
+    });
+
     document.querySelector('#image-360').emit('startRotateSky');
     if (AFRAME.utils.device.isMobile()) {
       //document.querySelector('scene-wrapper').setAttribute('rotation')

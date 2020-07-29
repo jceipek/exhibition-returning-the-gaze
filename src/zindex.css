@@ -1,0 +1,18 @@
+@import "../node_modules/normalize.css/normalize.css";
+/* @import url("https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Raleway&display=swap" rel="stylesheet"); */
+
+.loading {
+    z-index: 20;
+}
+
+.interstitial, .landing {
+    z-index: 10;
+}
+
+.navigation {
+    z-index: 50;
+}
+
+.iframe-hall {
+    z-index: 20;
+}
