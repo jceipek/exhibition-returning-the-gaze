@@ -27,7 +27,7 @@ function toggleEventListeners (state: boolean) {
 }
 
 const thisHall: LaurenHall = {
-    name: "Hall of Surveilance",
+    name: "Hall of Surveillance",
     introId: null,
     state: {
         iframe: null,
