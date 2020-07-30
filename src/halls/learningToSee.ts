@@ -7,6 +7,7 @@ import videoDual2src from "../media/Memo2.webm";
 import videoDual3src from "../media/Memo3.webm";
 
 interface LearningToSeeHall extends Hall {
+
     state: {
         videoSrcs: string[],
         planeData: { pos: [number, number, number], rot: [number, number, number] }[],
@@ -19,7 +20,8 @@ interface LearningToSeeHall extends Hall {
 }
 
 const thisHall: LearningToSeeHall = {
-    introClassName: "js-learning-to-see-hall",
+    name: "Hall of Learning To See",
+    introId: "js-learning-to-see-hall",
     state: {
         videoSrcs: [],
         planeData: [],
@@ -33,7 +35,7 @@ const thisHall: LearningToSeeHall = {
         function postLoad () {
             thisHall.state.progressFrac= 0;
             thisHall.state.camera.position.set(0, 0, 0);
-            registerEventListeners();
+            
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
@@ -122,7 +124,15 @@ const thisHall: LearningToSeeHall = {
     },
     onEnter: function (renderer: WebGLRenderer) {
         renderer.setClearColor("black");
+        registerEventListeners();
+            thisHall.state.vids.forEach(vid => {
+                vid.play();
+            });
     },
+    onLeave: function () {
+        removeEventListeners();
+    },
+    
     render: function (renderer) {
         renderer.render(thisHall.state.scene, thisHall.state.camera);
     },
@@ -132,7 +142,7 @@ const thisHall: LearningToSeeHall = {
     },
     teardown: async function () : Promise<void> {
         return new Promise<void>((resolve) => {
-            removeEventListeners();
+            
             resolve();
         });
     },
@@ -147,11 +157,7 @@ interface WindowListeners {
 }
 
 const windowEventListeners: WindowListeners = {
-    click: () => {
-        thisHall.state.vids.forEach(vid => {
-            vid.play();
-        });
-    },
+
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
         let length = 6.5;

@@ -21,7 +21,8 @@ interface MasksHall extends Hall {
 }
 
 const thisHall: MasksHall = {
-    introClassName: "js-eyes-hall",
+    name: "Hall of Eyes",
+    introId: "js-eyes-hall",
     state: {
         videoSrcs: [],
         planeData: [],
@@ -33,9 +34,9 @@ const thisHall: MasksHall = {
     },
     setup: async function (): Promise<void> {
         function postLoad () {
+            console.log("Postload - masks");
             thisHall.state.progressFrac= 0;
             thisHall.state.camera.position.set(0, 0, 0);
-            registerEventListeners();
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
@@ -88,6 +89,13 @@ const thisHall: MasksHall = {
     },
     onEnter: function (renderer: WebGLRenderer) {
         renderer.setClearColor("black");
+        thisHall.state.vids.forEach(vid => {
+            vid.play();
+        });
+        registerEventListeners();
+    },
+    onLeave: function () {
+        removeEventListeners();
     },
     render: function (renderer) {
         renderer.render(thisHall.state.scene, thisHall.state.camera);
@@ -100,7 +108,6 @@ const thisHall: MasksHall = {
     },
     teardown: async function () : Promise<void> {
         return new Promise<void>((resolve) => {
-            removeEventListeners();
             resolve();
         });
     },
@@ -115,11 +122,6 @@ interface WindowListeners {
 }
 
 const windowEventListeners: WindowListeners = {
-    click: () => {
-        thisHall.state.vids.forEach(vid => {
-            vid.play();
-        });
-    },
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
         let length = 6.5;

@@ -27,7 +27,7 @@ AFRAME.registerComponent('setup', {
     sceneSetup = true;
     if (videoLoaded || AFRAME.utils.device.isMobile()) {
       setTimeout(function() {
-        $('#loading').html('CLICK TO BEGIN');
+        $('#loading').html('Press to Enter');
       }, 3000);
     }
 

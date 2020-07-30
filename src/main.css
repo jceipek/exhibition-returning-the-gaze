@@ -10,10 +10,11 @@ body {
 .navigation {
     position: absolute;
     top: 0;
-    right: 0;
+    left: 0;
     color: black;
     padding: 1rem;
     cursor: pointer;
+    background-color: white;
 }
 
 .logos {

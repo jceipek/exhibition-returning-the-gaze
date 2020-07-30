@@ -16,6 +16,7 @@ interface Drone {
 
 interface DroneHall extends Hall {
     state: {
+
         videoSrcs: string[],
         planeData: { pos: [number, number, number], rot: [number, number, number] }[],
         vids: HTMLVideoElement[],
@@ -31,7 +32,8 @@ interface DroneHall extends Hall {
 
 let startTs = Date.now();
 const thisHall: DroneHall = {
-    introClassName: "js-drones-hall",
+    name: "Hall of Drones",
+    introId: "js-drones-hall",
     state: {
         videoSrcs: [],
         planeData: [],
@@ -47,7 +49,7 @@ const thisHall: DroneHall = {
         function postLoad() {
             thisHall.state.progressFrac = 0;
             thisHall.state.camera.position.set(0, 0, 0);
-            registerEventListeners();
+            // registerEventListeners();
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
@@ -82,7 +84,7 @@ const thisHall: DroneHall = {
 
                 var geometry1 = new BufferGeometry().setFromPoints(points);
                 var line = new Line(geometry1, material);
-                
+
                 // DRACO compressed model loader
                 const draco = new DRACOLoader()
                 // TODO(JULIAN): Figure out why loading locally doesn't work!
@@ -92,7 +94,7 @@ const thisHall: DroneHall = {
                 const loader = new GLTFLoader();
                 loader.setDRACOLoader(draco);
 
-                async function load3dModel (loader: GLTFLoader, modelName: string): Promise<Group> {
+                async function load3dModel(loader: GLTFLoader, modelName: string): Promise<Group> {
                     return new Promise<Group>((resolve, reject) => {
                         loader.load(modelName, function (file) {
                             resolve(file.scene);
@@ -102,7 +104,7 @@ const thisHall: DroneHall = {
                     })
                 }
 
-                async function addFinishedDrones (loader: GLTFLoader, droneSrc: string, eyesSrc: string) : Promise<HTMLVideoElement> {
+                async function addFinishedDrones(loader: GLTFLoader, droneSrc: string, eyesSrc: string): Promise<HTMLVideoElement> {
                     // load eye video
                     // load 3d model
                     // assign many drones to scene
@@ -119,21 +121,21 @@ const thisHall: DroneHall = {
                                 });
                                 console.log(droneindex);
                                 model.traverse(adjustuvs(droneindex, eyesMaterial));
-        
+
                                 state.scene.add(model);
                             }
                             resolve(eyesVideo);
                         })
                     });
                 }
-                async function addShowcaseVideo () : Promise<HTMLVideoElement[]> {
+                async function addShowcaseVideo(): Promise<HTMLVideoElement[]> {
                     // load the plane video
                     // assign to scene
                     let vids = state.videoSrcs.map(makeVideo);
                     return new Promise<HTMLVideoElement[]>((resolve) => {
                         Promise.all(vids).then((videos) => {
                             let planes = videos.map(makePlane);
-            
+
                             for (let i = 0; i < planes.length; i++) {
                                 let pos = state.planeData[i].pos;
                                 let rot = state.planeData[i].rot;
@@ -163,7 +165,24 @@ const thisHall: DroneHall = {
     },
     onEnter: function (renderer: WebGLRenderer) {
         renderer.setClearColor("white");
+        registerEventListeners();
+        // TODO: Fix the fact that this assumes all videos have loaded!
+        thisHall.state.vids.forEach(vid => {
+            vid.play();
+        });
+        if (thisHall.state.eyeVideo) {
+            thisHall.state.eyeVideo.play();
+        }
     },
+
+    onLeave: function () {
+        removeEventListeners();
+    },
+
+    
+
+
+
     render: function (renderer) {
         let state = thisHall.state;
         let drones = state.drones;
@@ -181,7 +200,7 @@ const thisHall: DroneHall = {
     },
     teardown: async function (): Promise<void> {
         return new Promise<void>((resolve) => {
-            removeEventListeners();
+            // removeEventListeners();
             resolve();
         });
     },
@@ -196,15 +215,7 @@ interface WindowListeners {
     [key: string]: EventListenerOrEventListenerObject,
 }
 const windowEventListeners: WindowListeners = {
-    click: () => {
-        // TODO: Fix the fact that this assumes all videos have loaded!
-        thisHall.state.vids.forEach(vid => {
-            vid.play();
-        });
-        if (thisHall.state.eyeVideo) {
-            thisHall.state.eyeVideo.play();
-        }
-    },
+
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
         let length = 6.5;

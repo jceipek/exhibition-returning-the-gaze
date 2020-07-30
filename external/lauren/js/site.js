@@ -260,14 +260,15 @@ $(document).ready(function() {
     videoLoaded = true;
     if (sceneSetup) {
       setTimeout(function() {
-        $('#loading').html('CLICK TO BEGIN');
+        $('#loading').html('Press to Enter');
       }, 3000);
     }
   });
 
   // ENTER!
   $('#js-lauren-hall').click(function() {
-    $('#js-lauren-hall').hide(); 
+    $('#js-lauren-hall').hide();
+    $('#loading').hide();
     clearInterval(dotInterval); 
     if (videoPlaying && !hideVideo) player.play();
     $('#lauren-video')[0].play();

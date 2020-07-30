@@ -27,7 +27,8 @@ function toggleEventListeners (state: boolean) {
 }
 
 const thisHall: LaurenHall = {
-    introClassName: null,
+    name: "Hall of Surveilance",
+    introId: null,
     state: {
         iframe: null,
         shouldLeave: false,
@@ -62,6 +63,11 @@ const thisHall: LaurenHall = {
             // iframe.height = `${window.innerHeight}px`;
         }
     },
+
+    onLeave: function () {
+
+    },
+
     teardown: async function () : Promise<void> {
         return new Promise<void>((resolve) => {
             toggleEventListeners(false);
