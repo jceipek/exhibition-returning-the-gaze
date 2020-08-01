@@ -10,7 +10,7 @@
   <meta property="og:url" content="https://get-lauren.com" />
   <meta property="og:title" content="LAUREN: THE HUMAN INTELLIGENT SMART HOME" />
   <meta property="og:description" content="LAUREN is a human intelligent smart home. Lauren will visit your home, deploy a series of smart devices, and watch over you remotely 24/7. Lauren will control your home for you, attempting to be better than an AI, understanding you as a person. You will be able to interact with her by calling her name, but she will also do things for you without your asking. She will learn faster than an algorithm, adapting to your desires and anticipating your needs." />
-  <meta property="og:image" content="https://get-lauren.com/images/LAUREN3.jpg" />
+  <meta property="og:image" content="/lauren/images/LAUREN3.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:creator" content="@laurmccarthy" />
 
@@ -49,7 +49,7 @@
 
   <iframe src="https://player.vimeo.com/video/397068136/" width="640" height="320" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen allow="autoplay"></iframe>
 
-  <img src='/lauren/img/volume-on.png' id='volume' class='button'>
+  <img src='/lauren/media/volume-on.png' id='volume' class='button'>
   <!-- <img src='img/restart.png' id='reload' class='button'> -->
 
   <nav>
@@ -57,7 +57,7 @@
     <h1 id='lauren' class='button'>LAUREN</h1>
     <span id='getlauren' class='button'>GET LAUREN</span>
   </nav>
-  <img src='/lauren/img/back.png' id='closeHome'>
+  <img src='/lauren/media/back.png' id='closeHome'>
 
   <div id="js-lauren-hall" class="interstitial">
     <div class="intro">
@@ -68,28 +68,17 @@
           Lauren will control your home for you, attempting to be better than an AI,
           understanding you as a person. You will be able to interact with her by calling her name,
           but she will also do things for you without your asking.
-          She will learn faster than an algorithm, adapting to your desires and anticipating your needs.</p>
-
-        <h2>How do I get LAUREN?</h2>
-        <p>You can sign up for LAUREN by clicking the "GET LAUREN" link below.
-          You will be asked to record a short video explaining why you want to try LAUREN.
-          Lauren will follow up with you to talk more about it, and if you like,
-          schedule a time to try LAUREN. Your trial will take place in your own home and
-          will last three days.</p>
-  
-        <h2>How does it work?</h2>
-        <p>LAUREN begins with Lauren physically visiting your home and installing a
-          collection of networked device objects, including cameras, sensors, outlets,
-          faucets, door locks, lights, and other electronic devices. She will discuss with
-          you what you hope to get from LAUREN.<br><br>
-          From that point on, LAUREN remotely watches over you 24/7 using the installed cameras and
-          sensors. You are able to direct via voice command as you would Siri or Alexa.
-          However, she can also anticipate your needs and learn to accommodate your desires.
-          LAUREN will control your home remotely using the installed networked switches and devices.</p>
+          She will learn faster than an algorithm, adapting to your desires and anticipating your needs.
+          LAUREN is a meditation on the smart home, the tensions between intimacy vs privacy, convenience
+          vs agency they present, and the role of human labor in the future of automation.<br><br>
+          This project was was developed as part of the Sundance Institute’s New Frontier Residency Program with the
+          World Building Institute and Pigeon Hole Productions and supported in part by a grant from Turner Broadcasting
+          and the Ewing Marion Kauffman Foundation.
+        </p>
 
         <div class="credits">
-            <h3>Artist</h3>
-            <p class="name">Lauren Lee McCarthy</p>
+          <h3>Artist</h3>
+          <p class="name">Lauren Lee McCarthy</p>
         </div>
 
       </div>
@@ -100,18 +89,12 @@
 
   <div id='learnmore-plate' class='plate'>
     <div id='learnmore-content' class='content'>
-      <p>LAUREN is a human intelligent smart home. Lauren will visit your home, deploy a series of smart devices, and watch over you remotely 24/7. Lauren will control your home for you, attempting to be better than an AI, understanding you as a person. You will be able to interact with her by calling her name, but she will also do things for you without your asking. She will learn faster than an algorithm, adapting to your desires and anticipating your needs.</p>
-
       <h2>How do I get LAUREN?</h2>
       <p>You can sign up for LAUREN by clicking the "GET LAUREN" link below. You will be asked to record a short video explaining why you want to try LAUREN. Lauren will follow up with you to talk more about it, and if you like, schedule a time to try LAUREN. Your trial will take place in your own home and will last three days.</p>
 
       <h2>How does it work?</h2>
       <p>LAUREN begins with Lauren physically visiting your home and installing a collection of networked device objects, including cameras, sensors, outlets, faucets, door locks, lights, and other electronic devices. She will discuss with you what you hope to get from LAUREN.<br><br>
       From that point on, LAUREN remotely watches over you 24/7 using the installed cameras and sensors. You are able to direct via voice command as you would Siri or Alexa. However, she can also anticipate your needs and learn to accommodate your desires. LAUREN will control your home remotely using the installed networked switches and devices.</p>
-
-
-      <h2>What?</h2>
-      <p>LAUREN is a performance piece created by <a href='http://lauren-mccarthy.com' target='_blank'>Lauren McCarthy</a>. <!-- It grows from her interest in <a href='http://lauren-mccarthy.com/follower' target='_blank'>following people</a> and <a href='http://lauren-mccarthy.com/Social-Turkers' target='_blank'>following commands</a>.  -->The experience is interactive, meaning you can participate by inviting LAUREN into your home for a performance. The <i>LAUREN Testimonials</i> film and 360 photography by <a href='http://davidleonard.tv' target='_blank'>David Leonard</a>. This project was was developed as part of the Sundance Institute’s New Frontier Residency Program with the World Building Institute and Pigeon Hole Productions and supported in part by a grant from Turner Broadcasting and the Ewing Marion Kauffman Foundation. For more information, contact <a href='mailto:lauren@get-lauren.com' target='_blank'>lauren@get-lauren.com</a>.</p>
 
       <div class='close button'>x</div>
     </div>
@@ -152,40 +135,40 @@
 
   <a-scene class='fullscreen' canvas keyboard-shortcuts screenshot vr-mode-ui='enabled: false'>
     <a-assets timeout='5000'>
-      <video id='lauren-video' crossorigin='anonymous' src='https://get-lauren.com/vid/lauren-broll4.mp4' autoplay loop='true' muted></video>
-      <video id='lauren-listening' crossorigin='anonymous' src='https://get-lauren.com/vid/lauren-listening4.mp4' autoplay loop='true' muted></video>
+      <video id='lauren-video' crossorigin='anonymous' src='/lauren/media/lauren-broll4.mp4' autoplay loop='true' muted></video>
+      <video id='lauren-listening' crossorigin='anonymous' src='/lauren/media/lauren-listening4.mp4' autoplay loop='true' muted></video>
 
 
-      <img id='alex' crossorigin='anonymous' src='/lauren/img/alex.jpg'>
-      <img id='alex-thumb' crossorigin='anonymous' src='/lauren/img/alex-thumb.jpg'>
-      <audio id='alex-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/alex.ogg'></audio>
-      <img id='amber' crossorigin='anonymous' src='/lauren/img/amber.jpg'>
-      <img id='amber-thumb' crossorigin='anonymous' src='/lauren/img/amber-thumb.jpg'>
-      <audio id='amber-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/amber.ogg'></audio>
-      <img id='jackmark' crossorigin='anonymous' src='/lauren/img/jackmark.jpg'>
-      <img id='jackmark-thumb' crossorigin='anonymous' src='/lauren/img/jackmark-thumb.jpg'>
-      <audio id='jackmark-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/jackmark.ogg'></audio>
+      <img id='alex' crossorigin='anonymous' src='/lauren/media/alex.jpg'>
+      <img id='alex-thumb' crossorigin='anonymous' src='/lauren/media/alex-thumb.jpg'>
+      <audio id='alex-audio' crossorigin='anonymous' src='/lauren/media/alex.ogg'></audio>
+      <img id='amber' crossorigin='anonymous' src='/lauren/media/amber.jpg'>
+      <img id='amber-thumb' crossorigin='anonymous' src='/lauren/media/amber-thumb.jpg'>
+      <audio id='amber-audio' crossorigin='anonymous' src='/lauren/media/amber.ogg'></audio>
+      <img id='jackmark' crossorigin='anonymous' src='/lauren/media/jackmark.jpg'>
+      <img id='jackmark-thumb' crossorigin='anonymous' src='/lauren/media/jackmark-thumb.jpg'>
+      <audio id='jackmark-audio' crossorigin='anonymous' src='/lauren/media/jackmark.ogg'></audio>
 
-      <img id='jennystu' crossorigin='anonymous' src='/lauren/img/jennystu.jpg'>
-      <img id='jennystu-thumb' crossorigin='anonymous' src='/lauren/img/jennystu-thumb.jpg'>
-      <audio id='jennystu-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/jennystu.ogg'></audio>
-      <img id='kristin' crossorigin='anonymous' src='/lauren/img/kristin.jpg'>
-      <img id='kristin-thumb' crossorigin='anonymous' src='/lauren/img/kristin-thumb.jpg'>
-      <audio id='kristin-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/kristin.ogg'></audio>
-      <img id='megan' crossorigin='anonymous' src='/lauren/img/megan.jpg'>
-      <img id='megan-thumb' crossorigin='anonymous' src='/lauren/img/megan-thumb.jpg'>
-      <audio id='megan-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/megan.ogg'></audio>
-      <img id='miriam' crossorigin='anonymous' src='/lauren/img/miriam.jpg'>
-      <img id='miriam-thumb' crossorigin='anonymous' src='/lauren/img/miriam-thumb.jpg'>
-      <audio id='miriam-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/miriam.ogg'></audio>
-      <img id='sean' crossorigin='anonymous' src='/lauren/img/sean.jpg'>
-      <img id='sean-thumb' crossorigin='anonymous' src='/lauren/img/sean.jpg'>
-      <audio id='sean-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/sean.ogg'></audio>
-      <img id='xiuling' crossorigin='anonymous' src='/lauren/img/xiuling.jpg'>
-      <img id='xiuling-thumb' crossorigin='anonymous' src='/lauren/img/xiuling-thumb.jpg'>
-      <audio id='xiuling-audio' crossorigin='anonymous' src='https://get-lauren.com/vid/xiuling.ogg'></audio>
+      <img id='jennystu' crossorigin='anonymous' src='/lauren/media/jennystu.jpg'>
+      <img id='jennystu-thumb' crossorigin='anonymous' src='/lauren/media/jennystu-thumb.jpg'>
+      <audio id='jennystu-audio' crossorigin='anonymous' src='/lauren/media/jennystu.ogg'></audio>
+      <img id='kristin' crossorigin='anonymous' src='/lauren/media/kristin.jpg'>
+      <img id='kristin-thumb' crossorigin='anonymous' src='/lauren/media/kristin-thumb.jpg'>
+      <audio id='kristin-audio' crossorigin='anonymous' src='/lauren/media/kristin.ogg'></audio>
+      <img id='megan' crossorigin='anonymous' src='/lauren/media/megan.jpg'>
+      <img id='megan-thumb' crossorigin='anonymous' src='/lauren/media/megan-thumb.jpg'>
+      <audio id='megan-audio' crossorigin='anonymous' src='/lauren/media/megan.ogg'></audio>
+      <img id='miriam' crossorigin='anonymous' src='/lauren/media/miriam.jpg'>
+      <img id='miriam-thumb' crossorigin='anonymous' src='/lauren/media/miriam-thumb.jpg'>
+      <audio id='miriam-audio' crossorigin='anonymous' src='/lauren/media/miriam.ogg'></audio>
+      <img id='sean' crossorigin='anonymous' src='/lauren/media/sean.jpg'>
+      <img id='sean-thumb' crossorigin='anonymous' src='/lauren/media/sean.jpg'>
+      <audio id='sean-audio' crossorigin='anonymous' src='/lauren/media/sean.ogg'></audio>
+      <img id='xiuling' crossorigin='anonymous' src='/lauren/media/xiuling.jpg'>
+      <img id='xiuling-thumb' crossorigin='anonymous' src='/lauren/media/xiuling-thumb.jpg'>
+      <audio id='xiuling-audio' crossorigin='anonymous' src='/lauren/media/xiuling.ogg'></audio>
 
-      <img id='hall-thumb' crossorigin='anonymous' src='/lauren/img/hall-thumb.jpg'>
+      <img id='hall-thumb' crossorigin='anonymous' src='/lauren/media/hall-thumb.jpg'>
 
 
       <!-- Image link template to be reused. -->
@@ -251,8 +234,8 @@
         </a-videosphere>
 
         <!-- Image links. -->
+        <!-- animation='property: rotation; dur: 1000; easing: linear; to: 0 0 0; startEvents: startRotateHomes; pauseEvents: stopRotateHomes' -->
         <a-entity id='links' layout='type: circle;  plane: xz; radius: 2.8' position='0 1 0' rotation='0 0 0' scale='' visible=''
-                  animation='property: rotation; dur: 1000; easing: linear; to: 0 0 0; startEvents: startRotateHomes; pauseEvents: stopRotateHomes'
                   animation__lower='property: position; dur: 500; easing: linear; to: 0 -0.25 0; startEvents: lower'
                   animation__raise='property: position; dur: 500; easing: linear; to: 0 1 0; startEvents: raise'> 
           <a-entity template='src: #link' data-src='#jennystu'></a-entity>

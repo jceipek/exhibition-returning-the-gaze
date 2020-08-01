@@ -7,6 +7,7 @@ var videoLoaded = false;
 var sceneSetup = false;
 var dotInterval;
 var homeOpen = false;
+var links;
 
 var hideRecord = true; // window.location.hash.indexOf('!') !== -1 || window.location.hash.indexOf('s') !== -1;
 var hideVideo = true; // window.location.hash.indexOf('?') !== -1;
@@ -14,7 +15,7 @@ if (hideVideo) videoPlaying = false;
 
 
 function toggleHomes(val) {
-  var links = document.querySelector('#links').getChildren();
+  links = document.querySelector('#links').getChildren();
   for (var i=0; i<links.length; i++) {
     if(links[i].tagName === 'A-ENTITY') {
       var obj = links[i].getChildren()[0];
@@ -120,6 +121,8 @@ function validate() {
 
 $(document).ready(function() {
 
+  let rot = 0;
+  links = document.querySelector('#links').getChildren();
   // temp
   // if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
   //   window.location = './simple.html';
@@ -152,6 +155,13 @@ $(document).ready(function() {
     }
     $('#loadingdots').text(s);
   }, 500);
+
+  $(document).bind('mousewheel', function(e){
+    let delta = e.originalEvent.wheelDelta;
+    rot += delta * 0.1 % 360;
+
+    document.querySelector('#links').setAttribute('rotation', '0 '+ rot +' 0');
+  });
 
   $('video').on('error', function(e) {
     $(this)[0].load();
