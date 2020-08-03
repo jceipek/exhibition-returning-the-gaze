@@ -1,12 +1,12 @@
 @import "../node_modules/normalize.css/normalize.css";
-@import url("https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Raleway&display=swap" rel="stylesheet");
+@import url("https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Raleway&display=swap");
 
 .loading {
     position: fixed;
     bottom: 0;
     color: white;
     background-color: #333;
-    width: 100vw;
+    width: 100%;
     z-index: 2;
     text-align: center;
     padding: 1rem;
@@ -18,18 +18,22 @@
     z-index: 1;
     position: absolute;
     top: 0;
-    width: 100vw;
+    width: 100%;
     min-height: 100vh;
     padding-bottom: 10rem;
 }
 
 /* Fonts */
-.intro>p, .interstitial, .intro h2 {
+.intro p, .interstitial, .intro h2 {
     font-family: 'Cinzel', serif;
 }
 
-.intro>p {
+.intro p {
     font-size: 1.3rem;
+}
+
+.hall-list p {
+    font-size: 1rem;
 }
 
 .loading {
@@ -51,11 +55,11 @@
     color: black;
 }
 
-h2, .entering, .credits, .credits>.name {
+h1, h2, .entering, .credits, .credits>.name {
     text-align: center;
 }
 
-h2 {
+h1, h2 {
     text-transform: uppercase;
     margin: 0;
 }
@@ -68,6 +72,20 @@ h3 {
 p {
     text-align: justify;
     text-justify: newspaper;
+}
+
+.landing ul {
+    list-style: none;
+    padding: 0 3rem;
+}
+
+.landing li {
+    display: flex;
+    align-items: center;
+}
+
+.landing li img {
+    height: 5rem;
 }
 
 .intro {

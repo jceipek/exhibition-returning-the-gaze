@@ -7,6 +7,7 @@ import video2src from "../media/V06.webm";
 import video3src from "../media/V06.webm";
 import video4src from "../media/V06.webm";
 import video5src from "../media/V06.webm";
+import iconPath from "../media/map/eyes.png";
 
 interface MasksHall extends Hall {
     state: {
@@ -22,6 +23,7 @@ interface MasksHall extends Hall {
 
 const thisHall: MasksHall = {
     name: "Hall of Eyes",
+    iconPath,
     introId: "js-eyes-hall",
     state: {
         videoSrcs: [],

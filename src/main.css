@@ -1,7 +1,7 @@
 @import "../node_modules/normalize.css/normalize.css";
 @import "interstitial.css";
 @import "zindex.css";
-/* @import url("https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Raleway&display=swap" rel="stylesheet"); */
+/* @import url("https://fonts.googleapis.com/css2?family=Lato&family=Open+Sans&family=Raleway&display=swap"); */
 
 body {
     margin: 0;
@@ -14,14 +14,27 @@ body {
     color: black;
     padding: 1rem;
     cursor: pointer;
-    background-color: white;
+}
+
+.navigation img {
+    height: 3rem;
+    filter: invert(1);
+}
+
+.navigation ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.navigation p {
+    display: none;
 }
 
 .logos {
-    padding-top: 4rem;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: space-between;
 }
 
 .logos>img {
@@ -47,12 +60,78 @@ body {
     border: 0;
 }
 
-.copyrigh {
-    padding: 0 1rem;
-    margin-top: 5rem;
-    max-width: 40rem;
-    margin-left: auto;
-    margin-right: auto;
-    /* font-family: 'Lato', sans-serif; */
-    /* font-size: 1; */
+footer {
+    margin-top: 2rem;
+}
+
+footer.attribution p {
+    font-size: 1rem;
+}
+
+footer p {
+    margin: 0;
+}
+
+.books {
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    flex-wrap: wrap;
+    padding: 0;
+}
+.books .info {
+    display: none;
+}
+
+.books a {
+    display: inline-block;
+}
+
+.books a img {
+    opacity: 0.7;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+
+.books a:hover img {
+    opacity: 1;
+}
+
+.books img {
+    max-height: 14rem;
+}
+
+.reflection-hall h3 {
+    text-align: center;
+    margin: 0;
+    color: white;
+}
+
+.reflection-hall article {
+    margin-bottom: 3rem;
+}
+
+.reflection-hall article>p {
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.reflection-hall a {
+    text-decoration: none;
+    color: white;
+}
+
+/* Video wrapper from https://css-tricks.com/fluid-width-video/ */
+.videoWrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    height: 0;
+  }
+
+.videoWrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }

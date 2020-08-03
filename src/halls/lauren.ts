@@ -1,4 +1,5 @@
-import { Halls, Hall, HallState } from "../common"
+import { Halls, Hall, HallState } from "../common";
+import iconPath from "../media/map/surveillance.png";
 
 interface LaurenHall extends Hall {
     state: {
@@ -28,6 +29,7 @@ function toggleEventListeners (state: boolean) {
 
 const thisHall: LaurenHall = {
     name: "Hall of Surveillance",
+    iconPath,
     introId: null,
     state: {
         iframe: null,
@@ -42,17 +44,17 @@ const thisHall: LaurenHall = {
             // iframe.height = `${window.innerHeight}px`;
             thisHall.state.iframe = iframe;
             thisHall.state.shouldLeave = false;
-            toggleEventListeners(true);
             resolve();
             // iframe.addEventListener("load", () => {
-            // });
-        });
-    },
-    onEnter: function (renderer) {
-        let iframe = thisHall.state.iframe;
-        if (iframe) {
-            document.body.appendChild(iframe);
-        }
+                // });
+            });
+        },
+        onEnter: function (renderer) {
+            let iframe = thisHall.state.iframe;
+            if (iframe) {
+                document.body.appendChild(iframe);
+            }
+            toggleEventListeners(true);
     },
     render: function (renderer) {
     },
@@ -65,14 +67,13 @@ const thisHall: LaurenHall = {
     },
 
     onLeave: function () {
-
+        let iframe = thisHall.state.iframe;
+        document.body.removeChild(iframe);
+        toggleEventListeners(false);
     },
 
     teardown: async function () : Promise<void> {
         return new Promise<void>((resolve) => {
-            toggleEventListeners(false);
-            let iframe = thisHall.state.iframe;
-            document.body.removeChild(iframe);
             resolve();
         });
     },

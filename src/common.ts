@@ -2,6 +2,7 @@ import { WebGLRenderer } from "three";
 
 export interface Hall {
     name: string,
+    iconPath: string,
     introId: string | null,
     setup(): Promise<void>,
     onEnter(renderer: WebGLRenderer): void,

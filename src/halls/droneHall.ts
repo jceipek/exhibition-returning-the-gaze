@@ -8,6 +8,7 @@ import { Halls, Hall, HallState } from "../common"
 import eyesSrc from "../media/eyes.webm";
 import video1src from "../media/KW.webm";
 import droneSrc from "../models/drone1.glb";
+import iconPath from "../media/map/drones.png";
 
 
 interface Drone {
@@ -16,7 +17,6 @@ interface Drone {
 
 interface DroneHall extends Hall {
     state: {
-
         videoSrcs: string[],
         planeData: { pos: [number, number, number], rot: [number, number, number] }[],
         vids: HTMLVideoElement[],
@@ -33,6 +33,7 @@ interface DroneHall extends Hall {
 let startTs = Date.now();
 const thisHall: DroneHall = {
     name: "Hall of Drones",
+    iconPath,
     introId: "js-drones-hall",
     state: {
         videoSrcs: [],

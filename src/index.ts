@@ -23,10 +23,10 @@ const halls: Halls = {
     lastHallIdx: -1,
     nextState: HallState.Init,
     nextHallIdx: 0,
-    allHalls: [ droneHall, masksHall,learningToSeeHall,laurenHall],
+    allHalls: [droneHall, masksHall, learningToSeeHall, laurenHall],
 }
 
-function getTimestamp () {
+function getTimestamp() {
     return (new Date()).valueOf();
 }
 
@@ -36,7 +36,7 @@ loadingIndicator.classList.add("loading");
 let loadingState = getTimestamp();
 let loadingIndicatorVisible = false;
 
-function toggleLoadingIndicator (state: boolean) {
+function toggleLoadingIndicator(state: boolean) {
     if (loadingIndicatorVisible !== state) {
         if (state) {
             document.body.appendChild(loadingIndicator);
@@ -47,20 +47,26 @@ function toggleLoadingIndicator (state: boolean) {
     }
 }
 
-function canNavigate (state: HallState) : boolean { 
-    return (state === HallState.InHall || 
-    state === HallState.WaitingToEnterHall ||
-    state === HallState.Landing ||
-    state === HallState.Reflecting);
+function canNavigate(state: HallState): boolean {
+    return (state === HallState.InHall ||
+        state === HallState.WaitingToEnterHall ||
+        state === HallState.Landing ||
+        state === HallState.Reflecting);
 }
 
 let navigation = document.getElementsByClassName("navigation")[0];
 let hallLinks = halls.allHalls.map((hall, idx) => {
     let li = document.createElement("li");
-    li.textContent = hall.name;
-    function makeJumpToIdxOnClick (idx: number) {
+    let img = document.createElement("img");
+    img.src = hall.iconPath;
+    img.alt = hall.name;
+    li.appendChild(img);
+    let txt = document.createElement("p");
+    txt.textContent = hall.name;
+    li.appendChild(txt);
+    function makeJumpToIdxOnClick(idx: number) {
         return () => {
-            if (halls.currHallIdx !== idx && 
+            if ((halls.currHallIdx !== idx || halls.state == HallState.Reflecting) &&
                 (canNavigate(halls.state))) {
                 halls.state = HallState.LeavingHall;
                 halls.allHalls[halls.currHallIdx].teardown().then(() => {
@@ -114,11 +120,11 @@ window.addEventListener("click", () => {
 
 function currHallHasIntro(): boolean {
     let introId = halls.allHalls[halls.currHallIdx].introId;
-    return introId? true : false;
+    return introId ? true : false;
 }
 
 function handleStateChange(lastState: HallState, lastIdx: number,
-        state: HallState, idx: number) {
+    state: HallState, idx: number) {
     if (lastState === state && idx === lastIdx) {
         return;
     }
@@ -172,6 +178,13 @@ function handleStateChange(lastState: HallState, lastIdx: number,
             } break;
         case HallState.Reflecting:
             {
+                interstitials.landingBlock.classList.add("hidden");
+                let hallIntros = interstitials.hallIntros;
+                for (let i = 0; i < hallIntros.length; i++) {
+                    if (hallIntros[i]) {
+                        hallIntros[i].classList.add("hidden");
+                    }
+                }
                 interstitials.reflection.classList.remove("hidden");
             } break;
     }
@@ -224,13 +237,13 @@ function handleHalls() {
         case HallState.Init:
             {
                 let renderer = halls.renderer;
-                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setSize(document.documentElement.clientWidth, window.innerHeight);
                 renderer.setClearColor("black");
                 renderer.domElement.classList.add("main-view");
                 document.body.appendChild(renderer.domElement);
 
                 window.addEventListener("resize", () => {
-                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setSize(document.documentElement.clientWidth, window.innerHeight);
                     if (halls.state == HallState.InHall) {
                         halls.allHalls[halls.currHallIdx].resize();
                     }
@@ -247,9 +260,9 @@ function handleHalls() {
             {
                 let hasIntro = currHallHasIntro();
                 if (hasIntro) {
-                    
+
                     loadingState = getTimestamp();
-                } 
+                }
 
                 halls.state = HallState.LoadingHall;
                 console.log("SETUP");
@@ -267,8 +280,8 @@ function handleHalls() {
                 // Waiting for promise to finish
                 const interval = 500;
                 const times = 3;
-                let elapsedMs = getTimestamp()-loadingState;
-                let dotCount = Math.floor((elapsedMs % (interval * times))/interval);
+                let elapsedMs = getTimestamp() - loadingState;
+                let dotCount = Math.floor((elapsedMs % (interval * times)) / interval);
                 let text = "Loading";
                 for (let i = 0; i <= dotCount; i++) {
                     text += ".";
@@ -289,9 +302,9 @@ function handleHalls() {
                 }
             } break;
         case HallState.StartedLeavingHall:
-                halls.state = HallState.LeavingHall;
-                {
-                    halls.allHalls[halls.currHallIdx].teardown().then(() => {
+            halls.state = HallState.LeavingHall;
+            {
+                halls.allHalls[halls.currHallIdx].teardown().then(() => {
                     halls.currHallIdx = (halls.currHallIdx + 1) % halls.allHalls.length;
                     console.log(`Now entering hall: ${halls.currHallIdx}`);
                     halls.state = HallState.StartedLoadingHall;

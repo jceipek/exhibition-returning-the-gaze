@@ -5,6 +5,7 @@ import { Halls, Hall, HallState } from "../common"
 import videoDual1src from "../media/Memo6.webm";
 import videoDual2src from "../media/Memo2.webm";
 import videoDual3src from "../media/Memo3.webm";
+import iconPath from "../media/map/learningtosee.png";
 
 interface LearningToSeeHall extends Hall {
 
@@ -21,6 +22,7 @@ interface LearningToSeeHall extends Hall {
 
 const thisHall: LearningToSeeHall = {
     name: "Hall of Learning To See",
+    iconPath,
     introId: "js-learning-to-see-hall",
     state: {
         videoSrcs: [],
