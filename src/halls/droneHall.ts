@@ -109,7 +109,7 @@ const thisHall: DroneHall = {
                 async function addScrollSign(loader: GLTFLoader, scrollSignSrc: string): Promise<void> {
                     return new Promise<void>((resolve, reject) => {
                         load3dModel(loader, scrollSignSrc).then((model) => {
-                            model.position.set(0,-0.2,-0.5);
+                            model.position.set(0,-0.2,-0.4);
                             state.scene.add(model);
                             resolve();
                         });
