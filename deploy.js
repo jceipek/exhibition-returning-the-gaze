@@ -21,7 +21,7 @@ fs.readdir(directory).then((files) => {
             file != ".vscode" &&
             file != "dist") {
             console.log("Delete", file);
-            deleteAllExceptDist.push(fs.unlink(path.join(directory, file)));
+            deleteAllExceptDist.push(fs.remove(path.join(directory, file)));
         }
     }
     return Promise.all(deleteAllExceptDist);
@@ -38,7 +38,7 @@ fs.readdir(directory).then((files) => {
 }).then(() => {
     // delete dist
     console.log("Delete dist folder");
-    return fs.unlink(distFolder);
+    return fs.remove(distFolder);
 }).then(() => {
     // git add everything
     console.log("git add everything");
