@@ -92,16 +92,19 @@ const thisHall: MasksHall = {
     onEnter: function (renderer: WebGLRenderer) {
         renderer.setClearColor("black");
         thisHall.state.vids.forEach(vid => {
+            vid.muted = false;
             vid.play();
         });
         registerEventListeners();
     },
     onLeave: function () {
+        thisHall.state.vids.forEach(vid => {
+            vid.muted = true;
+        });
         removeEventListeners();
     },
     render: function (renderer) {
         renderer.render(thisHall.state.scene, thisHall.state.camera);
-
     },
     resize: function () {
         thisHall.state.camera.aspect = window.innerWidth / window.innerHeight;

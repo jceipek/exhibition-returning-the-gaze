@@ -8,6 +8,7 @@ import { Halls, Hall, HallState } from "../common"
 import eyesSrc from "../media/eyes.webm";
 import video1src from "../media/KW.webm";
 import droneSrc from "../models/drone1.glb";
+import scrollSignSrc from "../models/scrollSign.glb";
 import iconPath from "../media/map/drones.png";
 
 
@@ -102,7 +103,17 @@ const thisHall: DroneHall = {
                         }, undefined /* progress */, function (error) {
                             reject(error);
                         });
-                    })
+                    });
+                }
+
+                async function addScrollSign(loader: GLTFLoader, scrollSignSrc: string): Promise<void> {
+                    return new Promise<void>((resolve, reject) => {
+                        load3dModel(loader, scrollSignSrc).then((model) => {
+                            model.position.set(0,-0.2,-0.5);
+                            state.scene.add(model);
+                            resolve();
+                        });
+                    });
                 }
 
                 async function addFinishedDrones(loader: GLTFLoader, droneSrc: string, eyesSrc: string): Promise<HTMLVideoElement> {
@@ -150,7 +161,9 @@ const thisHall: DroneHall = {
                     });
                 }
 
-                Promise.all([addFinishedDrones(loader, droneSrc, eyesSrc), addShowcaseVideo()]).then(([eyes, showcaseVideos]) => {
+                Promise.all([addFinishedDrones(loader, droneSrc, eyesSrc),
+                            addShowcaseVideo(),
+                            addScrollSign(loader, scrollSignSrc)]).then(([eyes, showcaseVideos]) => {
                     thisHall.state.loadedOnce = true;
                     thisHall.state.eyeVideo = eyes;
                     thisHall.state.vids = showcaseVideos;
@@ -169,6 +182,7 @@ const thisHall: DroneHall = {
         registerEventListeners();
         // TODO: Fix the fact that this assumes all videos have loaded!
         thisHall.state.vids.forEach(vid => {
+            vid.muted = false;
             vid.play();
         });
         if (thisHall.state.eyeVideo) {
@@ -177,6 +191,9 @@ const thisHall: DroneHall = {
     },
 
     onLeave: function () {
+        thisHall.state.vids.forEach(vid => {
+            vid.muted = true;
+        });
         removeEventListeners();
     },
 

@@ -7,13 +7,16 @@ import * as masksHall from "./halls/masks"
 import * as droneHall from "./halls/droneHall"
 import * as laurenHall from "./halls/lauren"
 
+import reflectionIcon from "./media/map/reflection.png"
+import landingIcon from "./media/map/home.png"
+
 import * as Stats from "stats.js"
 let stats = new Stats();
 stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 stats.dom.style.left = "auto";
 stats.dom.style.right = "0";
 stats.dom.style.top = "50px";
-document.body.appendChild(stats.dom);
+/* document.body.appendChild(stats.dom); */
 
 const halls: Halls = {
     renderer: new WebGLRenderer(),
@@ -30,42 +33,43 @@ function getTimestamp() {
     return (new Date()).valueOf();
 }
 
-const loadingIndicator = document.createElement("div");
-loadingIndicator.classList.add("js-loading");
-loadingIndicator.classList.add("loading");
+const loadingIndicator = document.getElementsByClassName("js-loading")[0];
+const loadingIndicatorStatus = document.getElementsByClassName("js-loading-status")[0];
+const loadingIndicatorDots = document.getElementsByClassName("js-loading-dots")[0];
 let loadingState = getTimestamp();
-let loadingIndicatorVisible = false;
 
 function toggleLoadingIndicator(state: boolean) {
-    if (loadingIndicatorVisible !== state) {
-        if (state) {
-            document.body.appendChild(loadingIndicator);
-        } else {
-            document.body.removeChild(loadingIndicator);
-        }
-        loadingIndicatorVisible = state;
+    if (state) {
+        loadingIndicator.classList.remove("hidden");
+    } else {
+        loadingIndicator.classList.add("hidden");
     }
 }
 
 function canNavigate(state: HallState): boolean {
     return (state === HallState.InHall ||
         state === HallState.WaitingToEnterHall ||
-        state === HallState.Landing ||
+        /* state === HallState.Landing || */
         state === HallState.Reflecting);
 }
 
-let navigation = document.getElementsByClassName("navigation")[0];
-let hallLinks = halls.allHalls.map((hall, idx) => {
+
+function createNavLi(text: string, iconPath: string) {
     let li = document.createElement("li");
     let img = document.createElement("img");
-    img.src = hall.iconPath;
-    img.alt = hall.name;
+    img.src = iconPath;
+    img.alt = text;
     li.appendChild(img);
     let txt = document.createElement("p");
-    txt.textContent = hall.name;
+    txt.textContent = text;
     li.appendChild(txt);
+    return li;
+}
+let navigation = document.getElementsByClassName("navigation")[0];
+const hallLinks = halls.allHalls.map((hall, idx) => {
+    let li = createNavLi(hall.name, hall.iconPath);
     function makeJumpToIdxOnClick(idx: number) {
-        return () => {
+        return (evt: MouseEvent) => {
             if ((halls.currHallIdx !== idx || halls.state == HallState.Reflecting) &&
                 (canNavigate(halls.state))) {
                 halls.state = HallState.LeavingHall;
@@ -74,24 +78,41 @@ let hallLinks = halls.allHalls.map((hall, idx) => {
                     console.log(`Now entering hall: ${halls.currHallIdx}`);
                     halls.state = HallState.StartedLoadingHall;
                 });
+                evt.preventDefault();
+                evt.stopPropagation();
             }
         }
     }
     li.addEventListener("click", makeJumpToIdxOnClick(idx));
-    return li;
+    return { li, decidingState: null, hallIdx: idx };
 });
 let ul = document.createElement("ul");
-for (let i = 0; i < hallLinks.length; i++) {
-    ul.appendChild(hallLinks[i]);
+
+{
+    let gotoLanding = createNavLi("Home", landingIcon);
+    gotoLanding.addEventListener("click", (evt) => {
+        if (canNavigate(halls.state)) {
+            halls.state = HallState.Landing;
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
+    });
+    hallLinks.unshift({ li: gotoLanding, decidingState: HallState.Landing, hallIdx: -1 });
 }
-let gotoReflection = document.createElement("li");
-gotoReflection.textContent = "Hall of Reflection";
-gotoReflection.addEventListener("click", () => {
-    if (canNavigate(halls.state)) {
-        halls.state = HallState.Reflecting;
-    }
-});
-ul.appendChild(gotoReflection);
+{
+    let gotoReflection = createNavLi("Hall of Reflection", reflectionIcon);
+    gotoReflection.addEventListener("click", (evt) => {
+        if (canNavigate(halls.state)) {
+            halls.state = HallState.Reflecting;
+            evt.preventDefault();
+            evt.stopPropagation();
+        }
+    });
+    hallLinks.push({ li: gotoReflection, decidingState: HallState.Reflecting, hallIdx: -1 });
+}
+for (let i = 0; i < hallLinks.length; i++) {
+    ul.appendChild(hallLinks[i].li);
+}
 navigation.appendChild(ul);
 
 
@@ -145,6 +166,7 @@ function handleStateChange(lastState: HallState, lastIdx: number,
                     }
                 }
                 interstitials.reflection.classList.add("hidden");
+                halls.renderer.domElement.classList.add("hidden");
             } break;
         case HallState.StartedLoadingHall:
         case HallState.LoadingHall:
@@ -162,6 +184,7 @@ function handleStateChange(lastState: HallState, lastIdx: number,
                     }
                 }
                 interstitials.reflection.classList.add("hidden");
+                halls.renderer.domElement.classList.add("hidden");
             } break;
         case HallState.InHall:
         case HallState.StartedLeavingHall:
@@ -175,6 +198,7 @@ function handleStateChange(lastState: HallState, lastIdx: number,
                     }
                 }
                 interstitials.reflection.classList.add("hidden");
+                halls.renderer.domElement.classList.remove("hidden");
             } break;
         case HallState.Reflecting:
             {
@@ -186,6 +210,7 @@ function handleStateChange(lastState: HallState, lastIdx: number,
                     }
                 }
                 interstitials.reflection.classList.remove("hidden");
+                halls.renderer.domElement.classList.add("hidden");
             } break;
     }
 
@@ -193,7 +218,7 @@ function handleStateChange(lastState: HallState, lastIdx: number,
         case HallState.Init:
         case HallState.Landing:
             {
-                toggleLoadingIndicator(false);
+                toggleLoadingIndicator(true);
             } break;
         case HallState.StartedLoadingHall:
         case HallState.LoadingHall:
@@ -230,12 +255,47 @@ function handleStateChange(lastState: HallState, lastIdx: number,
         case HallState.LeavingHall: console.log("LeavingHall"); break;
         case HallState.Reflecting: console.log("Reflecting"); break;
     }
+
+    let inAHall =
+        (state === HallState.StartedLoadingHall) ||
+        (state === HallState.LoadingHall) ||
+        (state === HallState.WaitingToEnterHall) ||
+        (state === HallState.InHall) ||
+        (state === HallState.StartedLeavingHall) ||
+        (state === HallState.LeavingHall);
+    for (let i = 0; i < hallLinks.length; i++) {
+        if ((inAHall && !hallLinks[i].decidingState && hallLinks[i].hallIdx == idx) ||
+            hallLinks[i].decidingState === state) {
+            hallLinks[i].li.classList.add("active");
+        } else {
+            hallLinks[i].li.classList.remove("active");
+        }
+    }
+}
+
+function updateLoadingDisplay(isLoading: boolean) {
+    if (isLoading) {
+        const interval = 500;
+        const times = 3;
+        let elapsedMs = getTimestamp() - loadingState;
+        let dotCount = Math.floor((elapsedMs % (interval * times)) / interval);
+        loadingIndicatorStatus.textContent = "Loading";
+        let dots = "";
+        for (let i = 0; i <= dotCount; i++) {
+            dots += ".";
+        }
+        loadingIndicatorDots.textContent = dots;
+    } else {
+        loadingIndicatorStatus.textContent = "Press to Enter";
+        loadingIndicatorDots.textContent = "";
+    }
 }
 
 function handleHalls() {
     switch (halls.state) {
         case HallState.Init:
             {
+                updateLoadingDisplay(true);
                 let renderer = halls.renderer;
                 renderer.setSize(document.documentElement.clientWidth, window.innerHeight);
                 renderer.setClearColor("black");
@@ -254,6 +314,7 @@ function handleHalls() {
             break;
         case HallState.Landing:
             {
+                updateLoadingDisplay(false);
                 //halls.state = HallState.StartedLoadingHall;
             } break;
         case HallState.StartedLoadingHall:
@@ -268,7 +329,7 @@ function handleHalls() {
                 console.log("SETUP");
                 halls.allHalls[halls.currHallIdx].setup().then(() => {
                     if (hasIntro) {
-                        loadingIndicator.innerText = "Press to Enter";
+                        updateLoadingDisplay(false);
                         halls.state = HallState.WaitingToEnterHall;
                     } else {
                         halls.state = HallState.InHall;
@@ -278,15 +339,7 @@ function handleHalls() {
         case HallState.LoadingHall:
             {
                 // Waiting for promise to finish
-                const interval = 500;
-                const times = 3;
-                let elapsedMs = getTimestamp() - loadingState;
-                let dotCount = Math.floor((elapsedMs % (interval * times)) / interval);
-                let text = "Loading";
-                for (let i = 0; i <= dotCount; i++) {
-                    text += ".";
-                }
-                loadingIndicator.innerText = text;
+                updateLoadingDisplay(true);
             } break;
         case HallState.WaitingToEnterHall:
             {

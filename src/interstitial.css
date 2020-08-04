@@ -4,6 +4,7 @@
 .loading {
     position: fixed;
     bottom: 0;
+    left: 0;
     color: white;
     background-color: #333;
     width: 100%;
@@ -14,18 +15,29 @@
     pointer-events: none;
 }
 
+.loading-dots {
+    min-width: 1em;
+    display: inline-block;
+    text-align: left;
+}
+
 .interstitial, .landing {
-    z-index: 1;
-    position: absolute;
-    top: 0;
     width: 100%;
     min-height: 100vh;
     padding-bottom: 10rem;
 }
 
+.lauren-interstitial {
+    position: absolute;
+}
+
 /* Fonts */
 .intro p, .interstitial, .intro h2 {
     font-family: 'Cinzel', serif;
+}
+
+.interstitial h2, .landing h2 {
+    font-size: 1.5rem;
 }
 
 .intro p {
@@ -90,7 +102,7 @@ p {
 
 .intro {
     padding: 0 1rem;
-    margin-top: 5rem;
+    padding-top: 5rem;
     max-width: 40rem;
     margin-left: auto;
     margin-right: auto;

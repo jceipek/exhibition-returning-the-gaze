@@ -8,16 +8,21 @@ body {
 }
 
 .navigation {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     color: black;
     padding: 1rem;
     cursor: pointer;
+    max-height: 100vh;
+    overflow: auto;
 }
 
 .navigation img {
     height: 3rem;
+}
+
+.navigation .active img {
     filter: invert(1);
 }
 

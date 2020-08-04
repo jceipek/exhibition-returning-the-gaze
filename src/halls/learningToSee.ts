@@ -128,13 +128,17 @@ const thisHall: LearningToSeeHall = {
         renderer.setClearColor("black");
         registerEventListeners();
             thisHall.state.vids.forEach(vid => {
+                vid.muted = false;
                 vid.play();
             });
-    },
+        },
     onLeave: function () {
+        thisHall.state.vids.forEach(vid => {
+            vid.muted = true;
+            vid.play();
+        });
         removeEventListeners();
     },
-    
     render: function (renderer) {
         renderer.render(thisHall.state.scene, thisHall.state.camera);
     },
