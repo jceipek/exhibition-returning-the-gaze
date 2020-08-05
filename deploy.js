@@ -62,7 +62,7 @@ fs.readdir(directory).then((files) => {
 }).then(() => {
     // git commit
     console.log("Commit");
-    return git.commit("Deploy");
+    return git.commit(`Deploy at ${(new Date()).toString()}`);
 }).then(() => {
     // git push
     console.log("Push");
