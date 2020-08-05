@@ -7,7 +7,7 @@ import { Halls, Hall, HallState } from "../common"
 
 import eyesSrc from "../media/eyes.webm";
 import video1src from "../media/KW.webm";
-import droneSrc from "../models/drone1.glb";
+import droneSrc from "../models/drone2.glb";
 import scrollSignSrc from "../models/scrollSign.glb";
 import iconPath from "../media/map/drones.png";
 
@@ -128,11 +128,39 @@ const thisHall: DroneHall = {
                             let model = droneGroup;
                             for (let droneindex = 0; droneindex < 10; droneindex++) {
                                 model = model.clone();
+
+                                const columns = 2;
+                                const rows = 1;
+                                //the height and width of each eye video 
+                                let eyeSegmentHeight = 103;
+                                let eyeSegmentWidth = 233;
+
+                                let yIndex = (Math.floor(droneindex / columns))%rows;
+                                let xIndex = (droneindex - columns * yIndex)%columns;
+
+                                let xMin = (xIndex*eyeSegmentWidth)/1280;
+                                let xMax = ((xIndex+1)*eyeSegmentWidth)/1280;
+                                let yMin = (yIndex*eyeSegmentHeight)/720;
+                                let yMax = ((yIndex+1)*eyeSegmentHeight)/720;
+                                {
+                                    let geometry = new PlaneGeometry(1.108156, 0.344204, 1);                                     
+                                    let uvs = geometry.faceVertexUvs[0];
+                                    
+                                    uvs[0][0].set( xMin , yMax );
+                                    uvs[0][1].set( xMin , yMin );
+                                    uvs[0][2].set( xMax , yMax );
+                                    uvs[1][0].set( xMin , yMin );
+                                    uvs[1][1].set( xMax , yMin );
+                                    uvs[1][2].set( xMax , yMax );
+                                
+                                    let plane = new Mesh(geometry, eyesMaterial);
+                                    plane.position.set(0, 0.2626, -0.01);
+                                    model.add(plane);
+                                }
+
                                 state.drones.push({
                                     group: model
                                 });
-                                console.log(droneindex);
-                                model.traverse(adjustuvs(droneindex, eyesMaterial));
 
                                 state.scene.add(model);
                             }
