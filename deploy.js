@@ -34,7 +34,7 @@ fs.readdir(directory).then((files) => {
     return fs.readdir(distFolder);
 }).then((files) => {
     console.log("Move all files out");
-    let moveUp = files.map((file) => { return fs.move(path.join(distFolder, file), path.join(directory, file)); });
+    let moveUp = files.map((file) => { return fs.move(path.join(distFolder, file), path.join(directory, file), {overwrite: true}); });
     return Promise.all(moveUp);
 }).then(() => {
     // delete dist
