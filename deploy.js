@@ -30,7 +30,22 @@ fs.readdir(directory).then((files) => {
     console.log("Checkout gh-pages");
     return git.checkout("gh-pages");
 }).then(() => {
-    console.log("Delete dist folder");
+    return fs.readdir(directory).then((files) => {
+        let deleteAllExceptDist = [];
+        for (const file of files) {
+            if (file != ".git" &&
+                file != ".gitignore" &&
+                file != ".vscode" &&
+                file != "node_modules" &&
+                file != "dist") {
+                console.log("Delete", file);
+                deleteAllExceptDist.push(fs.remove(path.join(directory, file)));
+            }
+        }
+        return Promise.all(deleteAllExceptDist);
+    });
+}).then(() => {
+    console.log("Read dist folder contents");
     return fs.readdir(distFolder);
 }).then((files) => {
     console.log("Move all files out");
