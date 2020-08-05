@@ -12,7 +12,7 @@
   <meta property="og:description" content="LAUREN is a human intelligent smart home. Lauren will visit your home, deploy a series of smart devices, and watch over you remotely 24/7. Lauren will control your home for you, attempting to be better than an AI, understanding you as a person. You will be able to interact with her by calling her name, but she will also do things for you without your asking. She will learn faster than an algorithm, adapting to your desires and anticipating your needs." />
   <meta property="og:image" content="/lauren/images/LAUREN3.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:creator" content="@laurmccarthy" />
+  <meta name="twitter:creator" content="@laurenleemack" />
 
   <meta aframe-injected='' name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,shrink-to-fit=no,user-scalable=no'>
   <meta aframe-injected='' name='mobile-web-app-capable' content='yes'>
@@ -25,10 +25,6 @@
 
   <!-- other libraries -->
   <script src='https://code.jquery.com/jquery-3.2.1.min.js' integrity='sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=' crossorigin='anonymous'></script>
-  <script src="https://player.vimeo.com/api/player.js"></script>
-  <script src="https://cdn.webrtc-experiment.com/gumadapter.js"></script>
-  <script src="/lauren/js/RecordRTC.min.js"></script>
-  <script src='/lauren/js/s3upload.js'></script>
 
   <!-- aframe and components -->
   <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
@@ -46,11 +42,6 @@
 </head>
 
 <body class='a-body' id='container'>
-
-  <iframe src="https://player.vimeo.com/video/397068136/" width="640" height="320" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen allow="autoplay"></iframe>
-
-  <img src='/lauren/media/volume-on.png' id='volume' class='button'>
-  <!-- <img src='img/restart.png' id='reload' class='button'> -->
 
   <nav>
     <span id='learnmore' class='button'>LEARN MORE</span>
@@ -133,7 +124,7 @@
   </div>
 
 
-  <a-scene class='fullscreen' canvas keyboard-shortcuts screenshot vr-mode-ui='enabled: false'>
+  <a-scene class='fullscreen' canvas keyboard-shortcuts screenshot vr-mode-ui='enabled: false' device-orientation-permission-ui='enabled: false'>
     <a-assets timeout='5000'>
       <video id='lauren-video' crossorigin='anonymous' src='/lauren/media/lauren-broll4.mp4' autoplay loop='true' muted></video>
       <video id='lauren-listening' crossorigin='anonymous' src='/lauren/media/lauren-listening4.mp4' autoplay loop='true' muted></video>

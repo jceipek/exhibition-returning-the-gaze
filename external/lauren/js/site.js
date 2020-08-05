@@ -2,7 +2,6 @@ var plate = 0; // 1 - learnmore, 2 - getlauren
 var h;
 var videoPlaying = false;
 var videoEnded = false;
-var player;
 var videoLoaded = false;
 var sceneSetup = false;
 var dotInterval;
@@ -37,7 +36,6 @@ function closeHome(force) {
   currentHome.emit('close');
   $('#closeHome').hide();
   if (!force) toggleHomes(true);
-  if (videoPlaying && !hideVideo) player.play();
   homeOpen = false;
 }
 
@@ -56,7 +54,6 @@ function getLauren(val) {
       resetForm();
     }
   } else {
-    if (videoPlaying && !hideVideo) player.play();
     var opac = videoPlaying ? 0 : 1;
     sky.setAttribute('material', 'shader: flat; src: #lauren-video; opacity:'+opac);
     sky.emit('startRotateSky');
@@ -175,18 +172,6 @@ $(document).ready(function() {
     }
   });
 
-  $('#volume').click(function() {
-    if ($(this).attr('src') === 'img/volume-on.png') {
-      $(this).attr('src', 'img/volume-off.png');
-      player.setVolume(0);
-    } else {
-      $(this).attr('src', 'img/volume-on.png');
-      player.setVolume(1);
-    }
-  });
-  $('#reload').click(function() {
-    window.location.reload();
-  });
 
   $('#learnmore').click(function() {
     if (plate == 1) {
@@ -261,52 +246,21 @@ $(document).ready(function() {
     resizeDOM();
   });
 
-  // VIMEO STUFF
-  var iframe = document.querySelector('iframe');
-  player = new Vimeo.Player(iframe);
 
-
-  player.on('loaded', function() {
-    videoLoaded = true;
-    if (sceneSetup) {
-      setTimeout(function() {
-        $('#loading').html('Press to Enter');
-      }, 3000);
-    }
-  });
-
+  videoLoaded = true;
+  if (sceneSetup) {
+    setTimeout(function() {
+      $('#loading').html('Press to Enter');
+    }, 3000);
+  }
   // ENTER!
   $('#js-lauren-hall').click(function() {
     $('#js-lauren-hall').hide();
     $('#loading').hide();
     clearInterval(dotInterval); 
-    if (videoPlaying && !hideVideo) player.play();
     $('#lauren-video')[0].play();
     startPassthrough();
   })
-
-  if (!hideVideo) {
-    player.addCuePoint(9, {type: 'show'});
-    player.addCuePoint(221, {type: 'end'});
-    player.on('cuepoint', function(e) {
-      if (e.data.type === 'show') {
-        document.querySelector('#image-360').emit('hide360');
-        document.querySelector('#links').emit('lower');
-      }
-      else if (e.data.type === 'end') {
-        videoPlaying = false;
-        videoEnded = true;
-        //player.pause();
-        document.querySelector('#image-360').emit('show360');
-        document.querySelector('#links').emit('raise');
-        console.log('ended the video!');
-      }
-    });
-    $(document).click(function() {
-      if (!videoPlaying && !videoEnded) player.play();
-      videoPlaying = true;
-    });
-  }
 
   resizeDOM();
 
