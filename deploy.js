@@ -37,6 +37,7 @@ fs.readdir(directory).then((files) => {
                 file != ".gitignore" &&
                 file != ".vscode" &&
                 file != "node_modules" &&
+                file != "CNAME" &&
                 file != "dist") {
                 console.log("Delete", file);
                 deleteAllExceptDist.push(fs.remove(path.join(directory, file)));
