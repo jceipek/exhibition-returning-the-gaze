@@ -22,7 +22,6 @@ AFRAME.registerComponent('set-image', {
 
     el.addEventListener(data.on, function () {
       homeOpen = true;
-      player.pause();
       data.target.setAttribute('src', data.src);
       data.target.emit('stopRotateSky');
       data.target.emit('startRotateHome');
