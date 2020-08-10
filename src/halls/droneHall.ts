@@ -5,7 +5,7 @@ import { Vector2, Vector3, BoxGeometry, Line, LineBasicMaterial, BufferAttribute
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import eyesSrc from "../media/eyes.webm";
+import eyesSrc from "../media/eyes3.webm";
 import video1src from "../media/KW.webm";
 import droneSrc from "../models/drone2.glb";
 import scrollSignSrc from "../models/scrollSign.glb";
@@ -110,7 +110,7 @@ const thisHall: DroneHall = {
                     return new Promise<void>((resolve, reject) => {
                         load3dModel(loader, scrollSignSrc).then((model) => {
                             model.position.set(0,-0.2,-0.4);
-                            state.scene.add(model);
+                            // state.scene.add(model);
                             resolve();
                         });
                     });
