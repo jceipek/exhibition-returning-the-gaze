@@ -2,11 +2,11 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import video1src from "../media/V05.webm";
-import video2src from "../media/V06.webm";
-import video3src from "../media/V06.webm";
-import video4src from "../media/V04 lowRES.webm";
-import video5src from "../media/V06.webm";
+import video1src from "../media/Mask03.webm";
+import video2src from "../media/Mask02.webm";
+import video3src from "../media/Mask03.webm";
+import video4src from "../media/Mask05.webm";
+import video5src from "../media/Mask01.webm";
 import iconPath from "../media/map/eyes.png";
 
 interface MasksHall extends Hall {
