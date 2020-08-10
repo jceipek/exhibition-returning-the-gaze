@@ -4,7 +4,7 @@ import { Halls, Hall, HallState } from "../common"
 
 import video1src from "../media/Mask03.webm";
 import video2src from "../media/Mask02.webm";
-import video3src from "../media/Mask03.webm";
+import video3src from "../media/Mask04.webm";
 import video4src from "../media/Mask05.webm";
 import video5src from "../media/Mask01.webm";
 import iconPath from "../media/map/eyes.png";
