@@ -1,4 +1,23 @@
-import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat, MathUtils, Object3D, Vector3 } from "three";
+import {
+    Scene,
+    PerspectiveCamera,
+    PlaneGeometry,
+    Geometry,
+    FogExp2,
+    GridHelper,
+    Material,
+    MeshBasicMaterial,
+    MeshStandardMaterial,
+    Mesh,
+    WebGLRenderer,
+    VideoTexture,
+    LinearFilter,
+    RGBFormat,
+    MathUtils,
+    Object3D,
+    Vector3
+} from "three";
+
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
@@ -15,7 +34,8 @@ interface LearningToSeeHall extends Hall {
         vids: HTMLVideoElement[],
         scene: Scene,
         camera: PerspectiveCamera,
-        planeGroups: Mesh[][],
+        screenGroups: Mesh[][],
+        reflectionScreenGroups: Mesh[][],
         progressFrac: number,
         loadedOnce: boolean
     }
@@ -27,25 +47,44 @@ const thisHall: LearningToSeeHall = {
     introId: "js-learning-to-see-hall",
     state: {
         settings: {
-            startDistance: 6, // distance to first set of planes
-            depthSpacing: 8, // distance in depth between planeGroups
-            widthSpacingNear: 1.1, // minumum width between adjacent planes
+            camHeight: 0.7, // camera height
+            scrollSpeed: 0.0001, // how fast scrolling affects movement
+
+            baseHeight: 0.7, // minimum screen height
+            startDistance: 6, // distance to first set of screens
+            depthSpacing: 8, // distance in depth between screenGroups
+            widthSpacingNear: 1.1, // minumum width between adjacent screens
             camDistWidthMult: 2, // how camera distance affects width spacing
             camDistWidthPow: 3, // order of camera distance width spacing influence
             camDistHeightMult: 1, // how camera distance affects height
             camDistHeightPow: 4, // order of camera distance width height
             camDistScale: 0.3, // how distance affects scale (fake scale effect)
-            camDistClamp: 1.5, // how many depthSpacings away to start moving planes
+            camDistClamp: 1.5, // how many depthSpacings away to start moving screens
             rotMult: 1.5, // how much to multiply current rotation by (after looking at camera)
-            moveSpeed: 0.05, // how fast each plane moves to target
-            scrollSpeed: 0.0001, // how fast scrolling affects movement
-            borderSize:1.07, // size of white border
+            moveSpeed: 0.05, // how fast each screen moves to target
+            borderSize: 1.07, // size of white border
+
+            floor: {
+                enabled: true,
+                reflections: true,
+                grid: true,
+                size: 100,
+                divisions: 100,
+                gridColor: 0x888888,
+                alpha: 0.8,
+            },
+
+            fog: {
+                enabled: true,
+                density: 0.06,
+            },
         },
         videoSrcs: [],
         vids: [],
         scene: new Scene(),
         camera: new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100),
-        planeGroups: [],
+        screenGroups: [],
+        reflectionScreenGroups: [],
         progressFrac: 0,
         loadedOnce: false
     },
@@ -64,6 +103,7 @@ const thisHall: LearningToSeeHall = {
                 ];
 
                 Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
+                    let settings = state.settings;
                     state.vids = videos;
 
                     let materials = state.vids.map(makeMaterial);
@@ -77,7 +117,8 @@ const thisHall: LearningToSeeHall = {
                         let uvb = 0.01; // avoid uv border artifacts
                         let yMin = 0 + uvb;
                         let yMax = 1 - uvb;
-                        let planeGroup = [];
+                        let screenGroup: Mesh[] = [];
+                        let reflectionScreenGroup: Mesh[] = [];
 
                         for (let panel = 0; panel < numPanels; panel++) {
                             let geometry = new PlaneGeometry(1, 1, 1);
@@ -92,21 +133,55 @@ const thisHall: LearningToSeeHall = {
                             uvs[1][1].set(xMax, yMin);
                             uvs[1][2].set(xMax, yMax);
 
-                            let plane = new Mesh(geometry, material);
-                            plane.position.set(0, 100, 0);
-                            state.scene.add(plane);
-                            planeGroup.push(plane);
+                            function createScreen(geometry: Geometry, material: Material, screenGroup: any[]) {
+                                let plane = new Mesh(geometry, material);
+                                plane.position.set(0, 100, 0);
+                                state.scene.add(plane);
+                                screenGroup.push(plane);
 
-                            if(state.settings.borderSize > 1) {
-                                let bgPlane = new Mesh(geometry, new MeshBasicMaterial());
-                                bgPlane.scale.setScalar(state.settings.borderSize);
-                                bgPlane.position.set(0, 0, -0.01);
-                                plane.add(bgPlane);
+                                // border
+                                if (settings.borderSize > 1) {
+                                    let borderPlane = new Mesh(geometry, new MeshBasicMaterial());
+                                    borderPlane.scale.setScalar(settings.borderSize);
+                                    borderPlane.position.set(0, 0, -0.01);
+                                    plane.add(borderPlane);
+                                }
+                            }
+
+                            createScreen(geometry, material, screenGroup);
+
+                            if (settings.floor.enabled && settings.floor.reflections) {
+                                createScreen(geometry, material, reflectionScreenGroup);
                             }
                         }
 
-                        state.planeGroups.push(planeGroup);
+                        state.screenGroups.push(screenGroup);
+                        if (settings.floor.enabled && settings.floor.reflections) {
+                            state.reflectionScreenGroups.push(reflectionScreenGroup);
+                        }
                     }
+
+                    // create floor
+                    if (settings.floor.enabled) {
+                        if (settings.floor.reflections) {
+                            let floorMat = new MeshStandardMaterial({ color: 0x000000, opacity: settings.floor.alpha, transparent: true });
+                            let floor = new Mesh(new PlaneGeometry(settings.floor.size, settings.floor.size), floorMat);
+                            floor.rotateX(-Math.PI / 2);
+                            state.scene.add(floor);
+                        }
+
+                        // grid
+                        if (settings.floor.grid) {
+                            let grid = new GridHelper(settings.floor.size, settings.floor.divisions, settings.floor.gridColor, settings.floor.gridColor);
+                            grid.position.set(0, 0.1, 0);
+                            state.scene.add(grid);
+                        }
+                    }
+
+                    if (settings.fog.enabled) {
+                        state.scene.fog = new FogExp2(0, settings.fog.density);
+                    }
+
                     thisHall.state.loadedOnce = true;
                     postLoad();
                     resolve();
@@ -138,43 +213,51 @@ const thisHall: LearningToSeeHall = {
         let settings = state.settings;
         let cam = state.camera;
 
-        for (let planeGroupIdx = 0; planeGroupIdx < state.planeGroups.length; planeGroupIdx++) {
-            let planeGroup = state.planeGroups[planeGroupIdx];
+        for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
+            let screenGroup = state.screenGroups[screenGroupIdx];
 
-            for (let planeIdx = 0; planeIdx < planeGroup.length; planeIdx++) {
-                let plane = planeGroup[planeIdx];
-                
-                let camDistNorm = Math.abs(plane.position.z - cam.position.z) / settings.depthSpacing; // normalised
-                let camDistNormClamped = MathUtils.clamp(camDistNorm, 0, settings.camDistClamp); 
+            for (let screenIdx = 0; screenIdx < screenGroup.length; screenIdx++) {
+                let screen = screenGroup[screenIdx];
 
-                // set plane position
+                let camDistNorm = Math.abs(screen.position.z - cam.position.z) / settings.depthSpacing; // normalised
+                let camDistNormClamped = MathUtils.clamp(camDistNorm, 0, settings.camDistClamp);
+
+                // set screen position
                 let xposMult = 0;
                 let yposMult = 0;
-                if(planeGroup.length == 1) {
+                if (screenGroup.length == 1) {
                     xposMult = 0;
                     yposMult = 1;
                 } else {
-                    xposMult = planeIdx % 2 == 0 ? -1 : 1;
+                    xposMult = screenIdx % 2 == 0 ? -1 : 1;
                     yposMult = 0.5;
                 }
-                let targetPosition = new Vector3(xposMult * Math.pow(camDistNormClamped, settings.camDistWidthPow) * settings.camDistWidthMult * (1 + planeGroupIdx * 0.0) + xposMult * settings.widthSpacingNear / 2,
-                                                 yposMult * Math.pow(camDistNormClamped, settings.camDistHeightPow) * settings.camDistHeightMult * (1 + planeGroupIdx * 0.0),
-                                                 -(settings.startDistance + settings.depthSpacing * planeGroupIdx));
+                let targetPosition = new Vector3(xposMult * Math.pow(camDistNormClamped, settings.camDistWidthPow) * settings.camDistWidthMult * (1 + screenGroupIdx * 0.0) + xposMult * settings.widthSpacingNear / 2,
+                    yposMult * Math.pow(camDistNormClamped, settings.camDistHeightPow) * settings.camDistHeightMult * (1 + screenGroupIdx * 0.0) + settings.baseHeight,
+                    -(settings.startDistance + settings.depthSpacing * screenGroupIdx));
 
-                plane.position.addScaledVector(targetPosition.sub(plane.position), settings.moveSpeed);
+                screen.position.addScaledVector(targetPosition.sub(screen.position), settings.moveSpeed);
 
-                // set plane orientation
-                plane.lookAt(cam.position);
-                plane.rotation.set(0, plane.rotation.y * settings.rotMult, 0);
+                // set screen orientation
+                screen.lookAt(cam.position);
+                screen.rotation.set(0, screen.rotation.y * settings.rotMult, 0);
 
-                // set plane scale (fake scale effect)
+                // set screen scale (fake scale effect)
                 let targetScale = 1 + camDistNormClamped * settings.camDistScale;
-                plane.scale.setScalar(targetScale);
-                
+                screen.scale.setScalar(targetScale);
+
+                // update reflection
+                if (settings.floor.enabled && settings.floor.reflections) {
+                    let reflectionScreen = state.reflectionScreenGroups[screenGroupIdx][screenIdx];
+                    reflectionScreen.position.set(screen.position.x, -screen.position.y, screen.position.z);
+                    reflectionScreen.setRotationFromEuler(screen.rotation);
+                    reflectionScreen.scale.set(screen.scale.x, -screen.scale.y, screen.scale.z);
+                }
+
                 // set volume of videos based on camera distance
-                if (planeIdx == 0) { // only do it for first plane in planeGroup
+                if (screenIdx == 0) { // only do it for first screen in screenGroup
                     let volume;
-                    if (cam.position.z < plane.position.z) { // if screens are behind camera, quicker fade out
+                    if (cam.position.z < screen.position.z) { // if screens are behind camera, quicker fade out
                         volume = MathUtils.clamp(1 - (2 * camDistNorm), 0, 1);
                         volume *= volume * volume * volume;
                     } else {
@@ -183,7 +266,7 @@ const thisHall: LearningToSeeHall = {
                         // volume = volume * volume;
                         volume = 1 - volume;
                     }
-                    state.vids[planeGroupIdx].volume = volume;
+                    state.vids[screenGroupIdx].volume = volume;
                 }
             }
         }
@@ -191,7 +274,7 @@ const thisHall: LearningToSeeHall = {
         // update camera
         let length = settings.startDistance + settings.depthSpacing * state.videoSrcs.length;
         let targetCamZ = -state.progressFrac * length;
-        cam.position.set(0, 0, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
+        cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
 
         renderer.render(state.scene, cam);
     },
@@ -259,22 +342,22 @@ function makeMaterial(video: HTMLVideoElement) {
     return new MeshBasicMaterial({ map: makeVideoTex(video) });
 }
 
-function makePlane(video: HTMLVideoElement) {
-    let geometry = new PlaneGeometry(1, 1, 1);
-    let material = makeMaterial(video);
-    var uvs = geometry.faceVertexUvs[0];
-    let xMin = 0;
-    let xMax = 0.5;
-    uvs[0][0].set(xMin, 1);
-    uvs[0][1].set(xMin, 0);
-    uvs[0][2].set(xMax, 1);
-    uvs[1][0].set(xMin, 0);
-    uvs[1][1].set(xMax, 0);
-    uvs[1][2].set(xMax, 1);
+// function makePlane(video: HTMLVideoElement) {
+//     let geometry = new PlaneGeometry(1, 1, 1);
+//     let material = makeMaterial(video);
+//     var uvs = geometry.faceVertexUvs[0];
+//     let xMin = 0;
+//     let xMax = 0.5;
+//     uvs[0][0].set(xMin, 1);
+//     uvs[0][1].set(xMin, 0);
+//     uvs[0][2].set(xMax, 1);
+//     uvs[1][0].set(xMin, 0);
+//     uvs[1][1].set(xMax, 0);
+//     uvs[1][2].set(xMax, 1);
 
-    let plane = new Mesh(geometry, material);
-    return plane;
-}
+//     let plane = new Mesh(geometry, material);
+//     return plane;
+// }
 
 async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
     let video = document.createElement("video");
