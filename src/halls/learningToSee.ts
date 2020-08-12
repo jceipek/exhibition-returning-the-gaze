@@ -2,9 +2,9 @@ import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGL
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import videoDual1src from "../media/Memo6.webm";
-import videoDual2src from "../media/Memo2.webm";
-import videoDual3src from "../media/Memo3.webm";
+import videoDual1src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
+import videoDual2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
+import videoDual3src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
 import iconPath from "../media/map/learningtosee.png";
 
 interface LearningToSeeHall extends Hall {
@@ -267,14 +267,13 @@ async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
     return new Promise<HTMLVideoElement>((resolve, reject) => {
         if (isSupported) {
             video.src = webmSource;
-            video.width = 512;
-            video.height = 288;
             video.loop = true;
-        
             video.preload = 'auto';
             video.muted = true;
-    
-            function onCanPlay () {
+
+            function onCanPlay() {
+                video.width = video.videoWidth;
+                video.height = video.videoHeight;
                 console.log(video);
                 resolve(video);
                 video.removeEventListener("canplay", onCanPlay);
