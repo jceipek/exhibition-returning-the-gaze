@@ -1,20 +1,42 @@
-import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
+import {
+    Scene,
+    PerspectiveCamera,
+    PlaneGeometry,
+    Geometry,
+    FogExp2,
+    GridHelper,
+    Material,
+    MeshBasicMaterial,
+    MeshStandardMaterial,
+    Mesh,
+    WebGLRenderer,
+    VideoTexture,
+    LinearFilter,
+    RGBFormat,
+    MathUtils,
+    Object3D,
+    Vector3
+} from "three";
+
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import videoDual1src from "../media/Memo6.webm";
-import videoDual2src from "../media/Memo2.webm";
-import videoDual3src from "../media/Memo3.webm";
+import video1src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
+import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
+import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
+import video4src from "../media/memoakten_learningtodream_384x384_crf20.webm";
 import iconPath from "../media/map/learningtosee.png";
 
 interface LearningToSeeHall extends Hall {
 
     state: {
+        settings: any,
         videoSrcs: string[],
-        planeData: { pos: [number, number, number], rot: [number, number, number] }[],
         vids: HTMLVideoElement[],
         scene: Scene,
         camera: PerspectiveCamera,
+        screenGroups: Mesh[][],
+        reflectionScreenGroups: Mesh[][],
         progressFrac: number,
         loadedOnce: boolean
     }
@@ -25,94 +47,143 @@ const thisHall: LearningToSeeHall = {
     iconPath,
     introId: "js-learning-to-see-hall",
     state: {
+        settings: {
+            camHeight: 0.7, // camera height
+            scrollSpeed: 0.0001, // how fast scrolling affects movement
+
+            baseHeight: 0.7, // minimum screen height
+            startDistance: 6, // distance to first set of screens
+            depthSpacing: 8, // distance in depth between screenGroups
+            widthSpacingNear: 1.1, // minumum width between adjacent screens
+            camDistWidthMult: 2, // how camera distance affects width spacing
+            camDistWidthPow: 3, // order of camera distance width spacing influence
+            camDistHeightMult: 1, // how camera distance affects height
+            camDistHeightPow: 4, // order of camera distance width height
+            camDistScale: 0.3, // how distance affects scale (fake scale effect)
+            camDistClamp: 1.5, // how many depthSpacings away to start moving screens
+            rotMult: 1.5, // how much to multiply current rotation by (after looking at camera)
+            moveSpeed: 0.05, // how fast each screen moves to target
+            borderSize: 1.07, // size of white border
+
+            floor: {
+                enabled: true,
+                reflections: true,
+                grid: true,
+                size: 100,
+                divisions: 100,
+                gridColor: 0x888888,
+                alpha: 0.8,
+            },
+
+            fog: {
+                enabled: true,
+                density: 0.06,
+            },
+        },
         videoSrcs: [],
-        planeData: [],
         vids: [],
         scene: new Scene(),
-        camera: new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000),
+        camera: new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100),
+        screenGroups: [],
+        reflectionScreenGroups: [],
         progressFrac: 0,
         loadedOnce: false
     },
     setup: async function (): Promise<void> {
-        function postLoad () {
-            thisHall.state.progressFrac= 0;
+        function postLoad() {
+            thisHall.state.progressFrac = 0;
             thisHall.state.camera.position.set(0, 0, 0);
-            
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
                 let state = thisHall.state;
-                // state.videoSrcs = [
-                //     video1src,
-                //     video2src,
-                //     video3src,
-                //     video4src,
-                //     video5src,
-                //     video6src,
-                // ];
                 state.videoSrcs = [
-                    videoDual1src,
-                    videoDual2src,
-                    videoDual3src,
+                    video1src,
+                    video2src,
+                    video3src,
+                    video4src,
                 ];
-                state.planeData = [
-                    { pos: [-.55, 0, 3 - 5], rot: [0, 35, 0] },
-                    { pos: [.55, 0, 3 - 5], rot: [0, -35, 0] },
-                    { pos: [-0.7, 0, 5 - 9], rot: [0, 35, 0] },
-                    { pos: [0.7, 0, 5 - 9], rot: [0, -35, 0] },
-                    { pos: [-1.0, 0, 5 - 11], rot: [0, 35, 0] },
-                    { pos: [1.0, 0, 5 - 11], rot: [0, -35, 0] },
-                ];
-                
+
                 Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
+                    let settings = state.settings;
                     state.vids = videos;
 
                     let materials = state.vids.map(makeMaterial);
-                    for (let i = 0; i < state.planeData.length; i+=2) {
-                        let material = materials[Math.floor(i/2)];
-                        let yMin = 59.8/716.1;
-                        let yMax = 652.4/716.1;
-                        {
+                    for (let i = 0; i < state.vids.length; i++) {
+                        let vid = state.vids[i];
+                        let numPanels = Math.round(vid.width / vid.height); // should be 1 or 2
+                        console.log(vid, 'numPanels:', numPanels)
+                        // console.log(vid.width, vid.height);
+
+                        let material = materials[i];
+                        let uvb = 0.01; // avoid uv border artifacts
+                        let yMin = 0 + uvb;
+                        let yMax = 1 - uvb;
+                        let screenGroup: Mesh[] = [];
+                        let reflectionScreenGroup: Mesh[] = [];
+
+                        for (let panel = 0; panel < numPanels; panel++) {
                             let geometry = new PlaneGeometry(1, 1, 1);
                             let uvs = geometry.faceVertexUvs[0];
-                            let xMin = 28.4/1269.2;
-                            let xMax = 600/1269.2;
-                            
-                            uvs[0][0].set( xMin , yMax );
-                            uvs[0][1].set( xMin , yMin );
-                            uvs[0][2].set( xMax , yMax );
-                            uvs[1][0].set( xMin , yMin );
-                            uvs[1][1].set( xMax , yMin );
-                            uvs[1][2].set( xMax , yMax );
-                        
-                            let plane = new Mesh(geometry, material);
-                            let pos = state.planeData[i].pos;
-                            let rot = state.planeData[i].rot;
-                            plane.position.set(pos[0], pos[1], pos[2]);
-                            plane.rotation.set(0, rot[1] * 2 * Math.PI / 360, 0);
-                            state.scene.add(plane);
+                            let xMin = panel * 1 / numPanels + uvb;
+                            let xMax = xMin + 1 / numPanels - uvb;
+
+                            uvs[0][0].set(xMin, yMax);
+                            uvs[0][1].set(xMin, yMin);
+                            uvs[0][2].set(xMax, yMax);
+                            uvs[1][0].set(xMin, yMin);
+                            uvs[1][1].set(xMax, yMin);
+                            uvs[1][2].set(xMax, yMax);
+
+                            function createScreen(geometry: Geometry, material: Material, screenGroup: any[]) {
+                                let plane = new Mesh(geometry, material);
+                                plane.position.set(0, 100, 0);
+                                state.scene.add(plane);
+                                screenGroup.push(plane);
+
+                                // border
+                                if (settings.borderSize > 1) {
+                                    let borderPlane = new Mesh(geometry, new MeshBasicMaterial());
+                                    borderPlane.scale.setScalar(settings.borderSize);
+                                    borderPlane.position.set(0, 0, -0.01);
+                                    plane.add(borderPlane);
+                                }
+                            }
+
+                            createScreen(geometry, material, screenGroup);
+
+                            if (settings.floor.enabled && settings.floor.reflections) {
+                                createScreen(geometry, material, reflectionScreenGroup);
+                            }
                         }
-                        {
-                            let geometry = new PlaneGeometry(1, 1, 1);
-                            let uvs = geometry.faceVertexUvs[0];
-                            let xMin = 667.1/1269.2;
-                            let xMax = 1290/1269.2;
-                            uvs[0][0].set( xMin , yMax );
-                            uvs[0][1].set( xMin , yMin );
-                            uvs[0][2].set( xMax , yMax );
-                            uvs[1][0].set( xMin , yMin );
-                            uvs[1][1].set( xMax , yMin );
-                            uvs[1][2].set( xMax , yMax );
-                        
-                            let plane = new Mesh(geometry, material);
-                            let pos = state.planeData[i+1].pos;
-                            let rot = state.planeData[i+1].rot;
-                            plane.position.set(pos[0], pos[1], pos[2]);
-                            plane.rotation.set(0, rot[1] * 2 * Math.PI / 360, 0);
-                            state.scene.add(plane);
+
+                        state.screenGroups.push(screenGroup);
+                        if (settings.floor.enabled && settings.floor.reflections) {
+                            state.reflectionScreenGroups.push(reflectionScreenGroup);
                         }
                     }
-                    // plane.rotation.set(Math.PI/3,Math.PI/3,Math.PI/3);
+
+                    // create floor
+                    if (settings.floor.enabled) {
+                        if (settings.floor.reflections) {
+                            let floorMat = new MeshStandardMaterial({ color: 0x000000, opacity: settings.floor.alpha, transparent: true });
+                            let floor = new Mesh(new PlaneGeometry(settings.floor.size, settings.floor.size), floorMat);
+                            floor.rotateX(-Math.PI / 2);
+                            state.scene.add(floor);
+                        }
+
+                        // grid
+                        if (settings.floor.grid) {
+                            let grid = new GridHelper(settings.floor.size, settings.floor.divisions, settings.floor.gridColor, settings.floor.gridColor);
+                            grid.position.set(0, 0.1, 0);
+                            state.scene.add(grid);
+                        }
+                    }
+
+                    if (settings.fog.enabled) {
+                        state.scene.fog = new FogExp2(0, settings.fog.density);
+                    }
+
                     thisHall.state.loadedOnce = true;
                     postLoad();
                     resolve();
@@ -127,28 +198,103 @@ const thisHall: LearningToSeeHall = {
     onEnter: function (renderer: WebGLRenderer) {
         renderer.setClearColor("black");
         registerEventListeners();
-            thisHall.state.vids.forEach(vid => {
-                vid.muted = false;
-                vid.play();
-            });
-        },
+        thisHall.state.vids.forEach(vid => {
+            vid.muted = false;
+            vid.play();
+        });
+    },
     onLeave: function () {
         thisHall.state.vids.forEach(vid => {
             vid.muted = true;
-            vid.play();
+            vid.pause();
         });
         removeEventListeners();
     },
     render: function (renderer) {
-        renderer.render(thisHall.state.scene, thisHall.state.camera);
+        let state = thisHall.state;
+        let settings = state.settings;
+        let cam = state.camera;
+
+        for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
+            let screenGroup = state.screenGroups[screenGroupIdx];
+
+            for (let screenIdx = 0; screenIdx < screenGroup.length; screenIdx++) {
+                let screen = screenGroup[screenIdx];
+
+                let camDistNorm = Math.abs(screen.position.z - cam.position.z) / settings.depthSpacing; // normalised
+                let camDistNormClamped = MathUtils.clamp(camDistNorm, 0, settings.camDistClamp);
+
+                // set screen position
+                let xposMult = 0;
+                let yposMult = 0;
+                if (screenGroup.length == 1) {
+                    xposMult = 0;
+                    yposMult = 1;
+                } else {
+                    xposMult = screenIdx % 2 == 0 ? -1 : 1;
+                    yposMult = 0.5;
+                }
+                let targetPosition = new Vector3(xposMult * Math.pow(camDistNormClamped, settings.camDistWidthPow) * settings.camDistWidthMult * (1 + screenGroupIdx * 0.0) + xposMult * settings.widthSpacingNear / 2,
+                    yposMult * Math.pow(camDistNormClamped, settings.camDistHeightPow) * settings.camDistHeightMult * (1 + screenGroupIdx * 0.0) + settings.baseHeight,
+                    -(settings.startDistance + settings.depthSpacing * screenGroupIdx));
+
+                screen.position.addScaledVector(targetPosition.sub(screen.position), settings.moveSpeed);
+
+                // set screen orientation
+                screen.lookAt(cam.position);
+                screen.rotation.set(0, screen.rotation.y * settings.rotMult, 0);
+
+                // set screen scale (fake scale effect)
+                let targetScale = 1 + camDistNormClamped * settings.camDistScale;
+                screen.scale.setScalar(targetScale);
+
+                // update reflection
+                if (settings.floor.enabled && settings.floor.reflections) {
+                    let reflectionScreen = state.reflectionScreenGroups[screenGroupIdx][screenIdx];
+                    reflectionScreen.position.set(screen.position.x, -screen.position.y, screen.position.z);
+                    reflectionScreen.setRotationFromEuler(screen.rotation);
+                    reflectionScreen.scale.set(screen.scale.x, -screen.scale.y, screen.scale.z);
+                }
+
+                // set volume of videos based on camera distance
+                if (screenIdx == 0) { // only do it for first screen in screenGroup
+                    let volume;
+                    if (cam.position.z < screen.position.z) { // if screens are behind camera, quicker fade out
+                        volume = MathUtils.clamp(1 - (2 * camDistNorm), 0, 1);
+                        volume *= volume * volume * volume;
+                    } else {
+                        volume = MathUtils.clamp(camDistNorm, 0, 1);
+                        // volume = MathUtils.clamp(camDistNorm, 0, 1);
+                        // volume = volume * volume;
+                        volume = 1 - volume;
+                    }
+
+                    let vid = state.vids[screenGroupIdx];
+                    vid.volume = volume;
+                    if(volume==0) { 
+                        if (!vid.paused) vid.pause();
+                    } else {
+                        if (vid.paused) vid.play();
+                    } 
+                }
+            }
+        }
+
+        // update camera
+        let length = settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
+        let targetCamZ = -state.progressFrac * length;
+        cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
+
+        renderer.render(state.scene, cam);
     },
+
     resize: function () {
         thisHall.state.camera.aspect = window.innerWidth / window.innerHeight;
         thisHall.state.camera.updateProjectionMatrix();
     },
-    teardown: async function () : Promise<void> {
+    teardown: async function (): Promise<void> {
         return new Promise<void>((resolve) => {
-            
+
             resolve();
         });
     },
@@ -166,14 +312,14 @@ const windowEventListeners: WindowListeners = {
 
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
-        let length = 6.5;
-        thisHall.state.progressFrac -= evt.pixelY * 0.0001 * length;
-        thisHall.state.progressFrac = Math.max(0, Math.min(1, thisHall.state.progressFrac));
-        thisHall.state.camera.position.set(0, 0, thisHall.state.progressFrac * -length);
+        thisHall.state.progressFrac -= evt.pixelY * thisHall.state.settings.scrollSpeed;
+        thisHall.state.progressFrac = MathUtils.clamp(thisHall.state.progressFrac, 0, 1);
+        // console.log('scrollEvt', thisHall.state.progressFrac);
     },
+
     mousemove: (evt: MouseEvent) => {
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
-        thisHall.state.camera.rotation.set(0, -frac * 0.3, 0);
+        thisHall.state.camera.rotation.set(0, -frac * 0.5, 0);
     },
 }
 
@@ -205,22 +351,22 @@ function makeMaterial(video: HTMLVideoElement) {
     return new MeshBasicMaterial({ map: makeVideoTex(video) });
 }
 
-function makePlane(video: HTMLVideoElement) {
-    let geometry = new PlaneGeometry(1, 1, 1);
-    let material = makeMaterial(video);
-    var uvs = geometry.faceVertexUvs[0];
-    let xMin = 0;
-    let xMax = 0.5;
-    uvs[0][0].set( xMin , 1 );
-    uvs[0][1].set( xMin , 0 );
-    uvs[0][2].set( xMax , 1 );
-    uvs[1][0].set( xMin , 0 );
-    uvs[1][1].set( xMax , 0 );
-    uvs[1][2].set( xMax , 1 );
+// function makePlane(video: HTMLVideoElement) {
+//     let geometry = new PlaneGeometry(1, 1, 1);
+//     let material = makeMaterial(video);
+//     var uvs = geometry.faceVertexUvs[0];
+//     let xMin = 0;
+//     let xMax = 0.5;
+//     uvs[0][0].set(xMin, 1);
+//     uvs[0][1].set(xMin, 0);
+//     uvs[0][2].set(xMax, 1);
+//     uvs[1][0].set(xMin, 0);
+//     uvs[1][1].set(xMax, 0);
+//     uvs[1][2].set(xMax, 1);
 
-    let plane = new Mesh(geometry, material);
-    return plane;
-}
+//     let plane = new Mesh(geometry, material);
+//     return plane;
+// }
 
 async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
     let video = document.createElement("video");
@@ -229,14 +375,13 @@ async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
     return new Promise<HTMLVideoElement>((resolve, reject) => {
         if (isSupported) {
             video.src = webmSource;
-            video.width = 512;
-            video.height = 288;
             video.loop = true;
-        
             video.preload = 'auto';
             video.muted = true;
-    
-            function onCanPlay () {
+
+            function onCanPlay() {
+                video.width = video.videoWidth;
+                video.height = video.videoHeight;
                 console.log(video);
                 resolve(video);
                 video.removeEventListener("canplay", onCanPlay);
