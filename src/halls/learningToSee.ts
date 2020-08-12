@@ -90,6 +90,7 @@ const thisHall: LearningToSeeHall = {
                             uvs[1][2].set(xMax, yMax);
 
                             let plane = new Mesh(geometry, material);
+                            plane.position.set(0, 100, 0);
                             state.scene.add(plane);
                             planeGroup.push(plane);
 
