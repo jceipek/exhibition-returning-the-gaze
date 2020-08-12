@@ -37,7 +37,6 @@ const thisHall: LearningToSeeHall = {
         function postLoad () {
             thisHall.state.progressFrac= 0;
             thisHall.state.camera.position.set(0, 0, 0);
-            
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
@@ -127,11 +126,11 @@ const thisHall: LearningToSeeHall = {
     onEnter: function (renderer: WebGLRenderer) {
         renderer.setClearColor("black");
         registerEventListeners();
-            thisHall.state.vids.forEach(vid => {
-                vid.muted = false;
-                vid.play();
-            });
-        },
+        thisHall.state.vids.forEach(vid => {
+            vid.muted = false;
+            vid.play();
+        });
+    },
     onLeave: function () {
         thisHall.state.vids.forEach(vid => {
             vid.muted = true;
@@ -142,13 +141,14 @@ const thisHall: LearningToSeeHall = {
     render: function (renderer) {
         renderer.render(thisHall.state.scene, thisHall.state.camera);
     },
+
     resize: function () {
         thisHall.state.camera.aspect = window.innerWidth / window.innerHeight;
         thisHall.state.camera.updateProjectionMatrix();
     },
-    teardown: async function () : Promise<void> {
+    teardown: async function (): Promise<void> {
         return new Promise<void>((resolve) => {
-            
+
             resolve();
         });
     },
@@ -171,6 +171,7 @@ const windowEventListeners: WindowListeners = {
         thisHall.state.progressFrac = Math.max(0, Math.min(1, thisHall.state.progressFrac));
         thisHall.state.camera.position.set(0, 0, thisHall.state.progressFrac * -length);
     },
+
     mousemove: (evt: MouseEvent) => {
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
         thisHall.state.camera.rotation.set(0, -frac * 0.3, 0);
@@ -211,12 +212,12 @@ function makePlane(video: HTMLVideoElement) {
     var uvs = geometry.faceVertexUvs[0];
     let xMin = 0;
     let xMax = 0.5;
-    uvs[0][0].set( xMin , 1 );
-    uvs[0][1].set( xMin , 0 );
-    uvs[0][2].set( xMax , 1 );
-    uvs[1][0].set( xMin , 0 );
-    uvs[1][1].set( xMax , 0 );
-    uvs[1][2].set( xMax , 1 );
+    uvs[0][0].set(xMin, 1);
+    uvs[0][1].set(xMin, 0);
+    uvs[0][2].set(xMax, 1);
+    uvs[1][0].set(xMin, 0);
+    uvs[1][1].set(xMax, 0);
+    uvs[1][2].set(xMax, 1);
 
     let plane = new Mesh(geometry, material);
     return plane;
