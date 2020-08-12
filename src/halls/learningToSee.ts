@@ -21,9 +21,10 @@ import {
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import videoDual1src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
-import videoDual2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
-import videoDual3src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
+import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
+import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
+import video1src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
+import video4src from "../media/memoakten_learningtodream_384x384_crf20.webm";
 import iconPath from "../media/map/learningtosee.png";
 
 interface LearningToSeeHall extends Hall {
@@ -97,9 +98,10 @@ const thisHall: LearningToSeeHall = {
             if (!thisHall.state.loadedOnce) {
                 let state = thisHall.state;
                 state.videoSrcs = [
-                    videoDual1src,
-                    videoDual2src,
-                    videoDual3src,
+                    video1src,
+                    video2src,
+                    video3src,
+                    video4src,
                 ];
 
                 Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
@@ -276,7 +278,7 @@ const thisHall: LearningToSeeHall = {
         }
 
         // update camera
-        let length = settings.startDistance + settings.depthSpacing * state.videoSrcs.length;
+        let length = settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 1);
         let targetCamZ = -state.progressFrac * length;
         cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
 
