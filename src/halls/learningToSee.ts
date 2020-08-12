@@ -206,7 +206,7 @@ const thisHall: LearningToSeeHall = {
     onLeave: function () {
         thisHall.state.vids.forEach(vid => {
             vid.muted = true;
-            vid.play();
+            vid.pause();
         });
         removeEventListeners();
     },
@@ -271,14 +271,17 @@ const thisHall: LearningToSeeHall = {
 
                     let vid = state.vids[screenGroupIdx];
                     vid.volume = volume;
-                    if(volume==0) vid.pause();
-                    else vid.play(); 
+                    if(volume==0) { 
+                        if (!vid.paused) vid.pause();
+                    } else {
+                        if (vid.paused) vid.play();
+                    } 
                 }
             }
         }
 
         // update camera
-        let length = settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 1);
+        let length = settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
         let targetCamZ = -state.progressFrac * length;
         cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
 
