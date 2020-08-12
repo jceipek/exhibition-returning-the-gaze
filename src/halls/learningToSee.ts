@@ -29,15 +29,17 @@ const thisHall: LearningToSeeHall = {
         settings: {
             startDistance: 6, // distance to first set of planes
             depthSpacing: 8, // distance in depth between planeGroups
-            widthSpacingNear: 1, // minumum width between adjacent planes
+            widthSpacingNear: 1.1, // minumum width between adjacent planes
             camDistWidthMult: 2, // how camera distance affects width spacing
             camDistWidthPow: 3, // order of camera distance width spacing influence
             camDistHeightMult: 1, // how camera distance affects height
             camDistHeightPow: 4, // order of camera distance width height
+            camDistScale: 0.3, // how distance affects scale (fake scale effect)
             camDistClamp: 1.5, // how many depthSpacings away to start moving planes
             rotMult: 1.5, // how much to multiply current rotation by (after looking at camera)
             moveSpeed: 0.05, // how fast each plane moves to target
             scrollSpeed: 0.0001, // how fast scrolling affects movement
+            borderSize:1.07, // size of white border
         },
         videoSrcs: [],
         vids: [],
@@ -72,15 +74,16 @@ const thisHall: LearningToSeeHall = {
                         // console.log(vid.width, vid.height);
 
                         let material = materials[i];
-                        let yMin = 0
-                        let yMax = 1;
+                        let uvb = 0.01; // avoid uv border artifacts
+                        let yMin = 0 + uvb;
+                        let yMax = 1 - uvb;
                         let planeGroup = [];
 
                         for (let panel = 0; panel < numPanels; panel++) {
                             let geometry = new PlaneGeometry(1, 1, 1);
                             let uvs = geometry.faceVertexUvs[0];
-                            let xMin = panel * 1 / numPanels;
-                            let xMax = xMin + 1 / numPanels;
+                            let xMin = panel * 1 / numPanels + uvb;
+                            let xMax = xMin + 1 / numPanels - uvb;
 
                             uvs[0][0].set(xMin, yMax);
                             uvs[0][1].set(xMin, yMin);
@@ -94,11 +97,12 @@ const thisHall: LearningToSeeHall = {
                             state.scene.add(plane);
                             planeGroup.push(plane);
 
-                            let bgPlane = new Mesh(geometry, new MeshBasicMaterial());
-                            let ss = 1.05;
-                            bgPlane.scale.set(ss, ss, ss);
-                            bgPlane.position.set(0, 0, -0.01);
-                            plane.add(bgPlane);
+                            if(state.settings.borderSize > 1) {
+                                let bgPlane = new Mesh(geometry, new MeshBasicMaterial());
+                                bgPlane.scale.setScalar(state.settings.borderSize);
+                                bgPlane.position.set(0, 0, -0.01);
+                                plane.add(bgPlane);
+                            }
                         }
 
                         state.planeGroups.push(planeGroup);
@@ -140,9 +144,10 @@ const thisHall: LearningToSeeHall = {
             for (let planeIdx = 0; planeIdx < planeGroup.length; planeIdx++) {
                 let plane = planeGroup[planeIdx];
                 
-                // set plane position
                 let camDistNorm = Math.abs(plane.position.z - cam.position.z) / settings.depthSpacing; // normalised
                 let camDistNormClamped = MathUtils.clamp(camDistNorm, 0, settings.camDistClamp); 
+
+                // set plane position
                 let xposMult = 0;
                 let yposMult = 0;
                 if(planeGroup.length == 1) {
@@ -162,6 +167,10 @@ const thisHall: LearningToSeeHall = {
                 plane.lookAt(cam.position);
                 plane.rotation.set(0, plane.rotation.y * settings.rotMult, 0);
 
+                // set plane scale (fake scale effect)
+                let targetScale = 1 + camDistNormClamped * settings.camDistScale;
+                plane.scale.setScalar(targetScale);
+                
                 // set volume of videos based on camera distance
                 if (planeIdx == 0) { // only do it for first plane in planeGroup
                     let volume;
