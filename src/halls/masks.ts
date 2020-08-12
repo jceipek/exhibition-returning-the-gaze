@@ -129,7 +129,7 @@ interface WindowListeners {
 const windowEventListeners: WindowListeners = {
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
-        let length = 6.5;
+        let length = 7.5;
         thisHall.state.progressFrac -= evt.pixelY * 0.0001 * length;
         thisHall.state.progressFrac = Math.max(0, Math.min(1, thisHall.state.progressFrac));
         thisHall.state.camera.position.set(0, 0, thisHall.state.progressFrac * -length);
