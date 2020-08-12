@@ -21,9 +21,9 @@ import {
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
-import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
 import video1src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
+import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
+import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
 import video4src from "../media/memoakten_learningtodream_384x384_crf20.webm";
 import iconPath from "../media/map/learningtosee.png";
 
