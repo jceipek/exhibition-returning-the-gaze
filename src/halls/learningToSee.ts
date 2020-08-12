@@ -29,13 +29,14 @@ const thisHall: LearningToSeeHall = {
         settings: {
             startDistance: 6, // distance to first set of planes
             depthSpacing: 8, // distance in depth between planeGroups
-            widthSpacingNear: 0.8, // minumum width between adjacent planes
-            camDistWidthMult: 2.5, // how camera distance affects width spacing
-            camDistWidthPow: 2, // order of camera distance width spacing influence
+            widthSpacingNear: 1, // minumum width between adjacent planes
+            camDistWidthMult: 2, // how camera distance affects width spacing
+            camDistWidthPow: 3, // order of camera distance width spacing influence
             camDistHeightMult: 1, // how camera distance affects height
-            camDistHeightPow: 2, // order of camera distance width height
+            camDistHeightPow: 4, // order of camera distance width height
+            camDistClamp: 1.5, // how many depthSpacings away to start moving planes
             rotMult: 1.5, // how much to multiply current rotation by (after looking at camera)
-            moveSpeed: 0.1, // how fast each plane moves to target
+            moveSpeed: 0.05, // how fast each plane moves to target
             scrollSpeed: 0.0001, // how fast scrolling affects movement
         },
         videoSrcs: [],
@@ -140,7 +141,7 @@ const thisHall: LearningToSeeHall = {
                 
                 // set plane position
                 let camDistNorm = Math.abs(plane.position.z - cam.position.z) / settings.depthSpacing; // normalised
-                camDistNorm = MathUtils.clamp(camDistNorm, 0, 1);
+                let camDistNormClamped = MathUtils.clamp(camDistNorm, 0, settings.camDistClamp); 
                 let xposMult = 0;
                 let yposMult = 0;
                 if(planeGroup.length == 1) {
@@ -150,8 +151,8 @@ const thisHall: LearningToSeeHall = {
                     xposMult = planeIdx % 2 == 0 ? -1 : 1;
                     yposMult = 0.5;
                 }
-                let targetPosition = new Vector3(xposMult * (settings.widthSpacingNear / 2 + Math.pow(camDistNorm, settings.camDistWidthPow) * settings.camDistWidthMult),
-                                                 yposMult * Math.pow(camDistNorm, settings.camDistHeightPow) * settings.camDistHeightMult,
+                let targetPosition = new Vector3(xposMult * Math.pow(camDistNormClamped, settings.camDistWidthPow) * settings.camDistWidthMult * (1 + planeGroupIdx * 0.0) + xposMult * settings.widthSpacingNear / 2,
+                                                 yposMult * Math.pow(camDistNormClamped, settings.camDistHeightPow) * settings.camDistHeightMult * (1 + planeGroupIdx * 0.0),
                                                  -(settings.startDistance + settings.depthSpacing * planeGroupIdx));
 
                 plane.position.addScaledVector(targetPosition.sub(plane.position), settings.moveSpeed);
@@ -167,7 +168,7 @@ const thisHall: LearningToSeeHall = {
                         volume = MathUtils.clamp(1 - (2 * camDistNorm), 0, 1);
                         volume *= volume * volume * volume;
                     } else {
-                        volume = camDistNorm;
+                        volume = MathUtils.clamp(camDistNorm, 0, 1);
                         // volume = MathUtils.clamp(camDistNorm, 0, 1);
                         // volume = volume * volume;
                         volume = 1 - volume;
