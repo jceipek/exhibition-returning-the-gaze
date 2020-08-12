@@ -266,7 +266,11 @@ const thisHall: LearningToSeeHall = {
                         // volume = volume * volume;
                         volume = 1 - volume;
                     }
-                    state.vids[screenGroupIdx].volume = volume;
+
+                    let vid = state.vids[screenGroupIdx];
+                    vid.volume = volume;
+                    if(volume==0) vid.pause();
+                    else vid.play(); 
                 }
             }
         }
