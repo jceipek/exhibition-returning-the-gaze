@@ -29,7 +29,12 @@ import video1src from "../media/memoakten_learningtodream_384x384_crf20.webm";
 import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
 import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
 import video4src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
-import videoWallsrc from "../media/memowall_test.webm"
+
+// this is 140MB (20 minutes long), so I was reluctant to check it into github
+// in case I change it again and every version will be permanently inflating commit history
+// can be downloaded from https://www.dropbox.com/sh/k69xmsotw38inla/AACcz2PeJH5kiMF0BSUL66kda?dl=0
+import videoWallsrc from "../media/memowall.webm"
+
 import iconPath from "../media/map/learningtosee.png";
 import waypointSrc from "../models/waypointwhite.glb";
 
@@ -98,7 +103,7 @@ const thisHall: LearningToSeeHall = {
                 radius: 80,
                 zoffset: 0,
                 segments: 6,
-                brightness: 1,
+                brightness: 0.8,
                 fadeSpeed: 0.001,
             }
 
