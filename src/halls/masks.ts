@@ -38,7 +38,7 @@ const thisHall: MasksHall = {
         planeData: [],
         vids: [],
         scene: new Scene(),
-        camera: new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000),
+        camera: new PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000),
         waypointState: waypointMakeState(hallwayFloorY),
         waypoint: null,
         progressFrac: 0,

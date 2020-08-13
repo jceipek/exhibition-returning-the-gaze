@@ -79,7 +79,7 @@ const thisHall: DroneHall = {
         waypoint: null,
         waypointState: waypointMakeState(hallwayFloorY),
         scene: new Scene(),
-        camera: new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000),
+        camera: new PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000),
         progressFrac: 0,
         loadedOnce: false
     },
@@ -106,7 +106,7 @@ const thisHall: DroneHall = {
                 for (let i = 0; i <= 1; i += 1/depthDivisions) {
                     let x = lerp(i, -showcaseVideoWidth/2, showcaseVideoWidth/2);
                     points.push(new Vector3(x, hallwayFloorY, showcaseVideoPosZ));
-                    points.push(new Vector3(x, hallwayFloorY, 0));
+                    points.push(new Vector3(x, hallwayFloorY, 5));
                 }
                 // Floor across
                 for (let i = 0; i <= 1; i += 1/acrossDivisions) {
@@ -130,7 +130,7 @@ const thisHall: DroneHall = {
                 
 
                 // Left wall depth
-                for (let i = 0; i <= 1; i += 1/depthDivisions) {
+                for (let i = 1/depthDivisions; i <= 1-1/depthDivisions; i += 1/depthDivisions) {
                     let y = lerp(i, hallwayFloorY, showcaseVideoHeight + hallwayFloorY);
                     points.push(new Vector3(-showcaseVideoWidth/2, y, showcaseVideoPosZ));
                     points.push(new Vector3(-showcaseVideoWidth/2, y, 0));
@@ -143,7 +143,7 @@ const thisHall: DroneHall = {
                 }
 
                 // Right wall depth
-                for (let i = 0; i <= 1; i += 1/depthDivisions) {
+                for (let i = 1/depthDivisions; i <= 1-1/depthDivisions; i += 1/depthDivisions) {
                     let y = lerp(i, hallwayFloorY, showcaseVideoHeight + hallwayFloorY);
                     points.push(new Vector3(showcaseVideoWidth/2, y, showcaseVideoPosZ));
                     points.push(new Vector3(showcaseVideoWidth/2, y, 0));
@@ -180,7 +180,7 @@ const thisHall: DroneHall = {
                         Promise.all([eyesVideoPromise, droneModelPromise]).then(([eyesVideo, droneGroup]) => {
                             const eyesMaterial: Material = makeMaterial(eyesVideo);
                             let model = droneGroup;
-                            for (let droneindex = 0; droneindex < 10; droneindex++) {
+                            for (let droneindex = 0; droneindex < 4; droneindex++) {
                                 model = model.clone();
 
                                 const columns = 2;
@@ -276,9 +276,13 @@ const thisHall: DroneHall = {
     render: function (renderer) {
         let state = thisHall.state;
         let drones = state.drones;
+        let progressFrac = thisHall.state.progressFrac;
         for (let i = 0; i < drones.length; i++) {
-            // console.log( 'drones number=', drones.length);
-            drones[i].group.position.set(Math.sin(i * 1.3) + 0.2, Math.sin(i * 0.9) + 1.1, i - 7);
+            console.log( 'drones number=', drones.length);
+            // drones[i].group.position.set(Math.sin((i*-1.5))+0.4,
+            //                             (Math.sin(i*1.3)) *0.6, 
+            //                             i - 6.5);
+            drones[i].group.position.set(Math.sin(i * 1.5) + 0.3, Math.sin(i * 0.2)+0.1 , i - 5);
             drones[i].group.rotation.set(noise(0, (Date.now() - startTs) * 0.001, 0) * 0.1, noise(0, (Date.now() - startTs) * 0.001, 0) * 0.2, 0);
         }
 
