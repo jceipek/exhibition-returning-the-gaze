@@ -55,7 +55,7 @@ export function waypointMoveToMouse(mouseNDC : { x: number, y: number }, waypoin
     } else {
         document.body.style.cursor = "";
     }
-    waypoint.lastMouseNorm.set(mouseNDC.x, mouseNDC.y);
+    waypoint.lastMouseNorm.set(mouseNDC.x, Math.min(mouseNDC.y, -.5));
     waypoint.raycaster.setFromCamera(waypoint.lastMouseNorm, camera);
     waypoint.raycaster.ray.intersectPlane(waypoint.groundPlane, /* out */ outWaypointPos);
 

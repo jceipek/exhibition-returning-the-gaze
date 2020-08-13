@@ -1,4 +1,4 @@
-import { Group, Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
+import { Group, Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, FogExp2, LinearFilter, RGBFormat } from "three";
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
@@ -25,6 +25,7 @@ interface MasksHall extends Hall {
         loadedOnce: boolean
     }
 }
+
 
 const hallwayFloorY = -.5;
 const hallwayLength = 7.5;
@@ -86,6 +87,12 @@ const thisHall: MasksHall = {
                         });
                     });
                 }
+
+                var enableFog= true;
+                if(enableFog){
+                state. scene.fog= new FogExp2 (0x000000,0.25);
+                }
+
                 
                 async function addPlanes() : Promise<void> {
                     return new Promise<void>((resolve, reject) => {
@@ -170,7 +177,7 @@ const windowEventListeners: WindowListeners = {
     mousemove: (evt: MouseEvent) => {
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
         let state = thisHall.state;
-        state.camera.rotation.set(0, -frac * 0.3, 0);
+        state.camera.rotation.set(0, -frac * 0.6, 0);
         if (state.waypoint) {
             // Should technically use the renderer dimensions instead of window
             waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
