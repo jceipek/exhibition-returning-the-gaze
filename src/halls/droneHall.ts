@@ -1,14 +1,38 @@
 
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { Vector2, Vector3, BoxGeometry, Line, LineBasicMaterial, BufferAttribute, BufferGeometry, Material, Group, Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat, Object3D } from "three";
-import { normalizeWheel } from "../utils"
+import { GridHelper,
+    Vector2,
+    Vector3,
+    BoxGeometry,
+    Line,
+    LineSegments,
+    LineBasicMaterial,
+    BufferAttribute,
+    BufferGeometry,
+    Material,
+    Group,
+    Scene,
+    PerspectiveCamera,
+    PlaneGeometry,
+    MeshBasicMaterial,
+    Mesh,
+    WebGLRenderer,
+    VideoTexture,
+    LinearFilter,
+    RGBFormat,
+    Object3D,
+    Raycaster,
+    Plane } from "three";
+import { getTimestamp, normalizeWheel, lerp } from "../utils"
 import { Halls, Hall, HallState } from "../common"
+import { loader, load3dModel } from "../modelLoader"
+import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 
 import eyesSrc from "../media/eyes3.webm";
-import video1src from "../media/KW.webm";
+import videoLoroSrc from "../media/KW.webm";
 import droneSrc from "../models/drone2.glb";
-import scrollSignSrc from "../models/scrollSign.glb";
+import waypointSrc from "../models/waypoint.glb";
 import iconPath from "../media/map/drones.png";
 
 
@@ -18,17 +42,26 @@ interface Drone {
 
 interface DroneHall extends Hall {
     state: {
-        videoSrcs: string[],
-        planeData: { pos: [number, number, number], rot: [number, number, number] }[],
-        vids: HTMLVideoElement[],
+        showcaseVideoSrc: string,
+        showcaseVideo: HTMLVideoElement | null,
         eyeVideo: HTMLVideoElement | null,
         drones: Drone[],
+        waypoint: Group | null,
+        waypointState: WaypointState,
         scene: Scene,
         camera: PerspectiveCamera,
         progressFrac: number,
         loadedOnce: boolean
-    }
+    },
+    hallwayLength: number,
+    hallwayFloorY: number
 }
+
+const hallwayFloorY = -.5;
+const showcaseVideoScale = 1;
+const showcaseVideoWidth = 1.7777 * showcaseVideoScale;
+const showcaseVideoHeight = 1 * showcaseVideoScale;
+const showcaseVideoPosZ = -7;
 
 
 let startTs = Date.now();
@@ -36,12 +69,15 @@ const thisHall: DroneHall = {
     name: "Hall of Drones",
     iconPath,
     introId: "js-drones-hall",
+    hallwayLength: 6.5,
+    hallwayFloorY: hallwayFloorY,
     state: {
-        videoSrcs: [],
-        planeData: [],
-        vids: [],
+        showcaseVideoSrc: videoLoroSrc,
+        showcaseVideo: null,
         eyeVideo: null,
         drones: [],
+        waypoint: null,
+        waypointState: waypointMakeState(hallwayFloorY),
         scene: new Scene(),
         camera: new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000),
         progressFrac: 0,
@@ -51,66 +87,84 @@ const thisHall: DroneHall = {
         function postLoad() {
             thisHall.state.progressFrac = 0;
             thisHall.state.camera.position.set(0, 0, 0);
+            waypointReset(thisHall.state.waypointState);
             // registerEventListeners();
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
                 let state = thisHall.state;
 
-                state.videoSrcs = [
-                    video1src,
-                ];
-
-                state.planeData = [
-                    { pos: [0, 0, -7], rot: [0, 0, 0] },
-
-                ];
-
-
                 //drawing lines
                 var material = new LineBasicMaterial({ color: 0x000000 });
 
                 var points = [];
-                points.push(new Vector3(7, 4, -7));
-                points.push(new Vector3(7, 4, 0));
 
-                points.push(new Vector3(0, 0, -7));
-                points.push(new Vector3(7, -4, 0));
+                let depthDivisions = 10;
+                let acrossDivisions = 20;
 
-                points.push(new Vector3(0, 0, -7));
-                points.push(new Vector3(-7, -4, 7));
+                // Floor in depth
+                for (let i = 0; i <= 1; i += 1/depthDivisions) {
+                    let x = lerp(i, -showcaseVideoWidth/2, showcaseVideoWidth/2);
+                    points.push(new Vector3(x, hallwayFloorY, showcaseVideoPosZ));
+                    points.push(new Vector3(x, hallwayFloorY, 0));
+                }
+                // Floor across
+                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                    let z = lerp(i, 0, showcaseVideoPosZ);
+                    points.push(new Vector3(-showcaseVideoWidth/2, hallwayFloorY, z));
+                    points.push(new Vector3(showcaseVideoWidth/2, hallwayFloorY, z));
+                }
+                
+                // Roof in depth
+                for (let i = 0; i <= 1; i += 1/depthDivisions) {
+                    let x = lerp(i, -showcaseVideoWidth/2, showcaseVideoWidth/2);
+                    points.push(new Vector3(x, -hallwayFloorY, showcaseVideoPosZ));
+                    points.push(new Vector3(x, -hallwayFloorY, 0));
+                }
+                // Roof across
+                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                    let z = lerp(i, 0, showcaseVideoPosZ);
+                    points.push(new Vector3(-showcaseVideoWidth/2, -hallwayFloorY, z));
+                    points.push(new Vector3(showcaseVideoWidth/2, -hallwayFloorY, z));
+                }
+                
 
-                points.push(new Vector3(0, 0, -7));
-                points.push(new Vector3(-7, 4, 7));
+                // Left wall depth
+                for (let i = 0; i <= 1; i += 1/depthDivisions) {
+                    let y = lerp(i, hallwayFloorY, showcaseVideoHeight + hallwayFloorY);
+                    points.push(new Vector3(-showcaseVideoWidth/2, y, showcaseVideoPosZ));
+                    points.push(new Vector3(-showcaseVideoWidth/2, y, 0));
+                }
+                // Left wall across
+                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                    let z = lerp(i, 0, showcaseVideoPosZ);
+                    points.push(new Vector3(-showcaseVideoWidth/2, hallwayFloorY, z));
+                    points.push(new Vector3(-showcaseVideoWidth/2, showcaseVideoHeight + hallwayFloorY, z));
+                }
+
+                // Right wall depth
+                for (let i = 0; i <= 1; i += 1/depthDivisions) {
+                    let y = lerp(i, hallwayFloorY, showcaseVideoHeight + hallwayFloorY);
+                    points.push(new Vector3(showcaseVideoWidth/2, y, showcaseVideoPosZ));
+                    points.push(new Vector3(showcaseVideoWidth/2, y, 0));
+                }
+                // Right wall across
+                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                    let z = lerp(i, 0, showcaseVideoPosZ);
+                    points.push(new Vector3(showcaseVideoWidth/2, hallwayFloorY, z));
+                    points.push(new Vector3(showcaseVideoWidth/2, showcaseVideoHeight + hallwayFloorY, z));
+                }
 
 
                 var geometry1 = new BufferGeometry().setFromPoints(points);
-                var line = new Line(geometry1, material);
+                var line = new LineSegments(geometry1, material);
+                state.scene.add(line);
 
-                // DRACO compressed model loader
-                const draco = new DRACOLoader()
-                // TODO(JULIAN): Figure out why loading locally doesn't work!
-                //draco.setDecoderPath('./draco/gltf/');
-                draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-                draco.preload();
-                const loader = new GLTFLoader();
-                loader.setDRACOLoader(draco);
-
-                async function load3dModel(loader: GLTFLoader, modelName: string): Promise<Group> {
-                    return new Promise<Group>((resolve, reject) => {
-                        loader.load(modelName, function (file) {
-                            resolve(file.scene);
-                        }, undefined /* progress */, function (error) {
-                            reject(error);
-                        });
-                    });
-                }
-
-                async function addScrollSign(loader: GLTFLoader, scrollSignSrc: string): Promise<void> {
+                async function addWaypoint(loader: GLTFLoader, waypointSrc: string): Promise<void> {
                     return new Promise<void>((resolve, reject) => {
-                        load3dModel(loader, scrollSignSrc).then((model) => {
-                            model.position.set(0,-0.2,-0.4);
-                            // state.scene.add(model);
+                        load3dModel(loader, waypointSrc).then((model) => {
+                            state.scene.add(model);
+                            state.waypoint = model;
                             resolve();
                         });
                     });
@@ -168,33 +222,25 @@ const thisHall: DroneHall = {
                         })
                     });
                 }
-                async function addShowcaseVideo(): Promise<HTMLVideoElement[]> {
+                async function addShowcaseVideo(): Promise<HTMLVideoElement> {
                     // load the plane video
                     // assign to scene
-                    let vids = state.videoSrcs.map(makeVideo);
-                    return new Promise<HTMLVideoElement[]>((resolve) => {
-                        Promise.all(vids).then((videos) => {
-                            let planes = videos.map(makePlane);
-
-                            for (let i = 0; i < planes.length; i++) {
-                                let pos = state.planeData[i].pos;
-                                let rot = state.planeData[i].rot;
-                                planes[i].position.set(pos[0], pos[1], pos[2]);
-                                planes[i].rotation.set(0, rot[1] * 2 * Math.PI / 360, 0);
-                                state.scene.add(planes[i]);
+                    return new Promise<HTMLVideoElement>((resolve) => {
+                        makeVideo(state.showcaseVideoSrc).then((video) => {
+                            let plane = makePlane(video, showcaseVideoWidth, showcaseVideoHeight, showcaseVideoPosZ, hallwayFloorY);
+                            state.scene.add(plane);
                                 // state.scene.add(line);
-                            }
-                            resolve(videos);
+                            resolve(video);
                         });
                     });
                 }
 
                 Promise.all([addFinishedDrones(loader, droneSrc, eyesSrc),
                             addShowcaseVideo(),
-                            addScrollSign(loader, scrollSignSrc)]).then(([eyes, showcaseVideos]) => {
+                            addWaypoint(loader, waypointSrc)]).then(([eyes, showcaseVideo]) => {
                     thisHall.state.loadedOnce = true;
                     thisHall.state.eyeVideo = eyes;
-                    thisHall.state.vids = showcaseVideos;
+                    thisHall.state.showcaseVideo = showcaseVideo;
                     postLoad();
                     resolve();
                 });
@@ -209,19 +255,17 @@ const thisHall: DroneHall = {
         renderer.setClearColor("white");
         registerEventListeners();
         // TODO: Fix the fact that this assumes all videos have loaded!
-        thisHall.state.vids.forEach(vid => {
-            vid.muted = false;
-            vid.play();
-        });
+        thisHall.state.showcaseVideo.muted = false;
+        thisHall.state.showcaseVideo.play()
         if (thisHall.state.eyeVideo) {
             thisHall.state.eyeVideo.play();
         }
     },
 
     onLeave: function () {
-        thisHall.state.vids.forEach(vid => {
-            vid.muted = true;
-        });
+        thisHall.state.showcaseVideo.muted = true;
+        thisHall.state.showcaseVideo.pause();
+        thisHall.state.eyeVideo.pause();
         removeEventListeners();
     },
 
@@ -238,7 +282,10 @@ const thisHall: DroneHall = {
             drones[i].group.rotation.set(noise(0, (Date.now() - startTs) * 0.001, 0) * 0.1, noise(0, (Date.now() - startTs) * 0.001, 0) * 0.2, 0);
         }
 
-        renderer.render(thisHall.state.scene, thisHall.state.camera);
+        thisHall.state.progressFrac = waypointUpdate(state.waypointState, thisHall.state.progressFrac);
+        thisHall.state.camera.position.set(0, 0, thisHall.state.progressFrac * -thisHall.hallwayLength);
+
+        renderer.render(state.scene, state.camera);
     },
     resize: function () {
         thisHall.state.camera.aspect = window.innerWidth / window.innerHeight;
@@ -261,18 +308,31 @@ interface WindowListeners {
     [key: string]: EventListenerOrEventListenerObject,
 }
 const windowEventListeners: WindowListeners = {
-
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
-        let length = 6.5;
-        thisHall.state.progressFrac -= evt.pixelY * 0.0001 * length;
-        thisHall.state.progressFrac = Math.max(0, Math.min(1, thisHall.state.progressFrac));
-        thisHall.state.camera.position.set(0, 0, thisHall.state.progressFrac * -length);
+        if (thisHall.state.waypointState.state === WaypointMovingState.Idle) {
+            thisHall.state.progressFrac -= evt.pixelY * 0.0001 * thisHall.hallwayLength;
+            thisHall.state.progressFrac = Math.max(0, Math.min(1, thisHall.state.progressFrac));
+        }
     },
     mousemove: (evt: MouseEvent) => {
+        let state = thisHall.state;
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
-        thisHall.state.camera.rotation.set(0, -frac * 1.3, 0);
+        state.camera.rotation.set(0, -frac * 1.3, 0);
+        if (state.waypoint) {
+            // Should technically use the renderer dimensions instead of window
+            waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
+                                  y: -(evt.clientY / window.innerHeight) * 2 + 1},
+                                  state.waypointState,
+                                  state.camera, thisHall.hallwayLength * 0.5, /* out */ state.waypoint.position);
+        }
     },
+    click: (evt: MouseEvent) => {
+        let state = thisHall.state;
+        waypointTryStartMove(state.waypointState,
+                             state.progressFrac,
+                             state.waypoint.position.z/(-thisHall.hallwayLength));
+    }
 }
 
 function registerEventListeners() {
@@ -381,10 +441,11 @@ function makeMaterial(video: HTMLVideoElement) {
     return new MeshBasicMaterial({ map: makeVideoTex(video) });
 }
 
-function makePlane(video: HTMLVideoElement) {
-    let geometry = new PlaneGeometry(1.77777, 1, 1);
+function makePlane(video: HTMLVideoElement, width: number, height: number, zLocation: number, floorY: number) {
+    let geometry = new PlaneGeometry(width, height,1);
     let material = makeMaterial(video);
     let plane = new Mesh(geometry, material);
+    plane.position.set(0, height/2 + floorY, zLocation);
     return plane;
 }
 
@@ -429,7 +490,6 @@ function noise(x: number, y: number, z: number): number {
                 grad(p[BB + 1], x - 1, y - 1, z - 1))));
 }
 function fade(t: number): number { return t * t * t * (t * (t * 6 - 15) + 10); }
-function lerp(t: number, a: number, b: number): number { return a + t * (b - a); }
 function grad(hash: number, x: number, y: number, z: number): number {
     let h = (hash | 0) & 15;                      // CONVERT LO 4 BITS OF HASH CODE
     let u = h < 8 ? x : y,                 // INTO 12 GRADIENT DIRECTIONS.

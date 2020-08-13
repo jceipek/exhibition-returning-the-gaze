@@ -1,4 +1,5 @@
 import {
+    Group,
     Scene,
     PerspectiveCamera,
     PlaneGeometry,
@@ -20,12 +21,15 @@ import {
 
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
+import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
+import { Loader, loader, load3dModel } from "../modelLoader"
 
 import video1src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
 import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
 import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
 import video4src from "../media/memoakten_learningtodream_384x384_crf20.webm";
 import iconPath from "../media/map/learningtosee.png";
+import waypointSrc from "../models/waypointwhite.glb";
 
 interface LearningToSeeHall extends Hall {
 
@@ -35,6 +39,8 @@ interface LearningToSeeHall extends Hall {
         vids: HTMLVideoElement[],
         scene: Scene,
         camera: PerspectiveCamera,
+        waypointState: WaypointState,
+        waypoint: Group | null,
         screenGroups: Mesh[][],
         reflectionScreenGroups: Mesh[][],
         progressFrac: number,
@@ -84,6 +90,8 @@ const thisHall: LearningToSeeHall = {
         vids: [],
         scene: new Scene(),
         camera: new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100),
+        waypointState: waypointMakeState(0.01),
+        waypoint: null,
         screenGroups: [],
         reflectionScreenGroups: [],
         progressFrac: 0,
@@ -91,8 +99,10 @@ const thisHall: LearningToSeeHall = {
     },
     setup: async function (): Promise<void> {
         function postLoad() {
-            thisHall.state.progressFrac = 0;
-            thisHall.state.camera.position.set(0, 0, 0);
+            let state = thisHall.state;
+            state.progressFrac = 0;
+            state.camera.position.set(0, state.settings.camHeight, 0);
+            waypointReset(state.waypointState);
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
@@ -104,7 +114,25 @@ const thisHall: LearningToSeeHall = {
                     video4src,
                 ];
 
-                Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
+                async function addWaypoint(loader: Loader, waypointSrc: string): Promise<void> {
+                    return new Promise<void>((resolve, reject) => {
+                        load3dModel(loader, waypointSrc).then((model) => {
+                            state.scene.add(model);
+                            state.waypoint = model;
+                            resolve();
+                        });
+                    });
+                }
+
+                async function loadVideos(videoSrcs: string[]) : Promise<HTMLVideoElement[]> {
+                    return new Promise<HTMLVideoElement[]>((resolve, reject) => {
+                        Promise.all(videoSrcs.map(makeVideo)).then((videos) => {
+                            resolve(videos);
+                        })
+                    });
+                }
+
+                Promise.all([loadVideos(state.videoSrcs), addWaypoint(loader, waypointSrc)]).then(([videos]) => {
                     let settings = state.settings;
                     state.vids = videos;
 
@@ -280,8 +308,11 @@ const thisHall: LearningToSeeHall = {
             }
         }
 
+        // Update waypoint visualization
+        state.progressFrac = waypointUpdate(state.waypointState, state.progressFrac);
+
         // update camera
-        let length = settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
+        let length = getHallwayLength();
         let targetCamZ = -state.progressFrac * length;
         cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
 
@@ -304,6 +335,13 @@ const thisHall: LearningToSeeHall = {
 }
 export = thisHall;
 
+function getHallwayLength () {
+    let state = thisHall.state;
+    let settings = state.settings;
+    // return settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
+    return settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.96);
+}
+
 interface WindowListeners {
     [key: string]: EventListenerOrEventListenerObject,
 }
@@ -312,15 +350,31 @@ const windowEventListeners: WindowListeners = {
 
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
-        thisHall.state.progressFrac -= evt.pixelY * thisHall.state.settings.scrollSpeed;
-        thisHall.state.progressFrac = MathUtils.clamp(thisHall.state.progressFrac, 0, 1);
-        // console.log('scrollEvt', thisHall.state.progressFrac);
+        if (thisHall.state.waypointState.state === WaypointMovingState.Idle) {
+            thisHall.state.progressFrac -= evt.pixelY * thisHall.state.settings.scrollSpeed;
+            thisHall.state.progressFrac = MathUtils.clamp(thisHall.state.progressFrac, 0, 1);
+            // console.log('scrollEvt', thisHall.state.progressFrac);
+        }
     },
 
     mousemove: (evt: MouseEvent) => {
+        let state = thisHall.state;
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
-        thisHall.state.camera.rotation.set(0, -frac * 0.5, 0);
+        state.camera.rotation.set(0, -frac * 0.5, 0);
+        if (state.waypoint) {
+            // Should technically use the renderer dimensions instead of window
+            waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
+                                  y: -(evt.clientY / window.innerHeight) * 2 + 1},
+                                  state.waypointState,
+                                  state.camera, getHallwayLength(), /* out */ state.waypoint.position);
+        }
     },
+    click: (evt: MouseEvent) => {
+        let state = thisHall.state;
+        waypointTryStartMove(state.waypointState,
+                             state.progressFrac,
+                             state.waypoint.position.z/(-getHallwayLength()));
+    }
 }
 
 function registerEventListeners() {

@@ -1,6 +1,8 @@
-import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
+import { Group, Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
+import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
+import { Loader, loader, load3dModel } from "../modelLoader"
 
 import video1src from "../media/Mask03.webm";
 import video2src from "../media/Mask02.webm";
@@ -8,6 +10,7 @@ import video3src from "../media/Mask04.webm";
 import video4src from "../media/Mask05.webm";
 import video5src from "../media/Mask01.webm";
 import iconPath from "../media/map/eyes.png";
+import waypointSrc from "../models/waypointwhite.glb";
 
 interface MasksHall extends Hall {
     state: {
@@ -16,10 +19,15 @@ interface MasksHall extends Hall {
         vids: HTMLVideoElement[],
         scene: Scene,
         camera: PerspectiveCamera,
+        waypointState: WaypointState,
+        waypoint: Group | null,
         progressFrac: number,
         loadedOnce: boolean
     }
 }
+
+const hallwayFloorY = -.5;
+const hallwayLength = 7.5;
 
 const thisHall: MasksHall = {
     name: "Hall of Eyes",
@@ -31,6 +39,8 @@ const thisHall: MasksHall = {
         vids: [],
         scene: new Scene(),
         camera: new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000),
+        waypointState: waypointMakeState(hallwayFloorY),
+        waypoint: null,
         progressFrac: 0,
         loadedOnce: false
     },
@@ -39,6 +49,7 @@ const thisHall: MasksHall = {
             console.log("Postload - masks");
             thisHall.state.progressFrac= 0;
             thisHall.state.camera.position.set(0, 0, 0);
+            waypointReset(thisHall.state.waypointState);
         }
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
@@ -66,17 +77,35 @@ const thisHall: MasksHall = {
                     {pos: [0,0,3-10-1], rot: [0,0,0]},
                 ];
                 
-                Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
-                    state.vids = videos;
+                async function addWaypoint(loader: Loader, waypointSrc: string): Promise<void> {
+                    return new Promise<void>((resolve, reject) => {
+                        load3dModel(loader, waypointSrc).then((model) => {
+                            state.scene.add(model);
+                            state.waypoint = model;
+                            resolve();
+                        });
+                    });
+                }
+                
+                async function addPlanes() : Promise<void> {
+                    return new Promise<void>((resolve, reject) => {
+                        Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
+                            state.vids = videos;
                     
-                    let planes = state.vids.map(makePlane);
-                    for (let i = 0; i < planes.length; i++) {
-                        let pos = state.planeData[i].pos;
-                        let rot = state.planeData[i].rot;
-                        planes[i].position.set(pos[0],pos[1], pos[2]);
-                        planes[i].rotation.set(0,rot[1]*2*Math.PI/360,0);
-                        state.scene.add( planes[i] );
-                    }
+                            let planes = state.vids.map(makePlane);
+                            for (let i = 0; i < planes.length; i++) {
+                                let pos = state.planeData[i].pos;
+                                let rot = state.planeData[i].rot;
+                                planes[i].position.set(pos[0],pos[1], pos[2]);
+                                planes[i].rotation.set(0,rot[1]*2*Math.PI/360,0);
+                                state.scene.add( planes[i] );
+                            }
+                            resolve();
+                        })
+                    });
+                }
+
+                Promise.all([addWaypoint(loader, waypointSrc), addPlanes()]).then(() => {
                     // plane.rotation.set(Math.PI/3,Math.PI/3,Math.PI/3);
                     thisHall.state.loadedOnce = true;
                     postLoad();
@@ -104,7 +133,10 @@ const thisHall: MasksHall = {
         removeEventListeners();
     },
     render: function (renderer) {
-        renderer.render(thisHall.state.scene, thisHall.state.camera);
+        let state = thisHall.state;
+        state.progressFrac = waypointUpdate(state.waypointState, state.progressFrac);
+        state.camera.position.set(0, 0, state.progressFrac * -hallwayLength);
+        renderer.render(state.scene, state.camera);
     },
     resize: function () {
         thisHall.state.camera.aspect = window.innerWidth / window.innerHeight;
@@ -129,15 +161,30 @@ interface WindowListeners {
 const windowEventListeners: WindowListeners = {
     wheel: (scrollEvt: WheelEvent) => {
         let evt = normalizeWheel(scrollEvt);
-        let length = 7.5;
-        thisHall.state.progressFrac -= evt.pixelY * 0.0001 * length;
-        thisHall.state.progressFrac = Math.max(0, Math.min(1, thisHall.state.progressFrac));
-        thisHall.state.camera.position.set(0, 0, thisHall.state.progressFrac * -length);
+        let state = thisHall.state;
+        if (thisHall.state.waypointState.state === WaypointMovingState.Idle) {
+            state.progressFrac -= evt.pixelY * 0.0001 * hallwayLength;
+            state.progressFrac = Math.max(0, Math.min(1, state.progressFrac));
+        }
     },
     mousemove: (evt: MouseEvent) => {
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
-        thisHall.state.camera.rotation.set(0, -frac * 0.3, 0);
+        let state = thisHall.state;
+        state.camera.rotation.set(0, -frac * 0.3, 0);
+        if (state.waypoint) {
+            // Should technically use the renderer dimensions instead of window
+            waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
+                                  y: -(evt.clientY / window.innerHeight) * 2 + 1},
+                                  state.waypointState,
+                                  state.camera, hallwayLength, /* out */ state.waypoint.position);
+        }
     },
+    click: (evt: MouseEvent) => {
+        let state = thisHall.state;
+        waypointTryStartMove(state.waypointState,
+                             state.progressFrac,
+                             state.waypoint.position.z/(-hallwayLength));
+    }
 }
 
 function registerEventListeners() {
