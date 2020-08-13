@@ -34,10 +34,6 @@ import video1src from "../media/memoakten_learningtodream_384x384_crf20.webm";
 import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
 import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
 import video4src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
-
-// this is 140MB (20 minutes long), so I was reluctant to check it into github
-// in case I change it again and every version will be permanently inflating commit history
-// can be downloaded from https://www.dropbox.com/sh/k69xmsotw38inla/AACcz2PeJH5kiMF0BSUL66kda?dl=0
 import videoWallsrc from "../media/memowall.webm"
 
 import iconPath from "../media/map/learningtosee.png";
@@ -125,7 +121,9 @@ const thisHall: LearningToSeeHall = {
                     },
                     interactive: false,
                 },
-                fadeSpeed: 0.0005,
+                // fadeSpeed: 0.0005, // fade in when hall is activated 
+                fadeInTime: 20, // fade in at start
+                fadeOutTime: 20, // fade out before ending
             }
 
         },
@@ -359,7 +357,7 @@ const thisHall: LearningToSeeHall = {
         let cam = state.camera;
         // let time = state.clock.getElapsedTime();
 
-        if(state.stats) state.stats.begin();
+        if (state.stats) state.stats.begin();
 
         // update camera
         let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
@@ -370,16 +368,35 @@ const thisHall: LearningToSeeHall = {
         // update videoWall
         state.videoWall.obj.position.set(cam.position.x, cam.position.y, cam.position.z);
         if (thisHall.state.videoWall.mat) {
-            if (state.videoWall.mat.uniforms.brightness.value < settings.videoWall.eq.brightness) {
-                state.videoWall.mat.uniforms.brightness.value += settings.videoWall.fadeSpeed;
+            let vwvid = state.vids[state.vids.length - 1]; // videowall video
+            let time = vwvid.currentTime; // use this to stay in sync with videowall
+            let duration = vwvid.duration;
+
+            // fade in video wall when activated
+            // if (state.videoWall.mat.uniforms.brightness.value < settings.videoWall.eq.brightness) {
+            //     state.videoWall.mat.uniforms.brightness.value += settings.videoWall.fadeSpeed;
+            // }
+            // if (state.videoWall.mat.uniforms.brightness.value > settings.videoWall.eq.brightness) {
+            //     state.videoWall.mat.uniforms.brightness.value = settings.videoWall.eq.brightness;
+            // }
+
+            // fade in/out at start and end of video
+            if (time < settings.videoWall.fadeInTime) {
+                state.videoWall.mat.uniforms.brightness.value =
+                    MathUtils.mapLinear(time, 0, settings.videoWall.fadeInTime, 0, settings.videoWall.eq.brightness);
+                // console.log(time.toFixed(1), 'brightness:', state.videoWall.mat.uniforms.brightness.value.toFixed(1));
             }
-            if (state.videoWall.mat.uniforms.brightness.value > settings.videoWall.eq.brightness) {
+            else if (time > duration - settings.videoWall.fadeOutTime) {
+                state.videoWall.mat.uniforms.brightness.value =
+                    MathUtils.mapLinear(time, duration - settings.videoWall.fadeOutTime, duration, settings.videoWall.eq.brightness, 0);
+                // console.log(time.toFixed(1), 'brightness:', state.videoWall.mat.uniforms.brightness.value.toFixed(1));
+            } else if (state.videoWall.mat.uniforms.brightness.value != settings.videoWall.eq.brightness) {
                 state.videoWall.mat.uniforms.brightness.value = settings.videoWall.eq.brightness;
+                // console.log(time.toFixed(1), 'brightness:', state.videoWall.mat.uniforms.brightness.value.toFixed(1));
             }
+
             state.videoWall.mat.uniforms.tex.needsUpdate = true;
             if (settings.videoWall.eq.osc.enabled) {
-                let vwvid = state.vids[state.vids.length-1]; // videowall video
-                let time = vwvid.currentTime; // use this to stay in sync with videowall
                 let s = 0.5 + 0.5 * Math.cos(time * 2 * Math.PI / settings.videoWall.eq.osc.period + settings.videoWall.eq.osc.phase);
                 state.videoWall.mat.uniforms.saturation.value = MathUtils.lerp(settings.videoWall.eq.osc.saturation[0], settings.videoWall.eq.osc.saturation[1], s);
                 state.videoWall.mat.uniforms.contrast.value = MathUtils.lerp(settings.videoWall.eq.osc.contrast[0], settings.videoWall.eq.osc.contrast[1], s);
@@ -472,7 +489,7 @@ const thisHall: LearningToSeeHall = {
         // update camera
         renderer.render(state.scene, cam);
 
-        if(state.stats) state.stats.end();
+        if (state.stats) state.stats.end();
     },
 
     resize: function () {
