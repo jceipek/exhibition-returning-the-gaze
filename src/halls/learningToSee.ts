@@ -103,7 +103,7 @@ const thisHall: LearningToSeeHall = {
                 radius: 80,
                 zoffset: 0,
                 segments: 6,
-                brightness: 0.8,
+                brightness: 0.9,
                 fadeSpeed: 0.001,
             }
 
