@@ -100,7 +100,7 @@ const thisHall: DroneHall = {
                 var points = [];
 
                 let depthDivisions = 10;
-                let acrossDivisions = 20;
+                let acrossDivisions = 30;
 
                 // Floor in depth
                 for (let i = 0; i <= 1; i += 1/depthDivisions) {
