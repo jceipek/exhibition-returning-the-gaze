@@ -1,5 +1,5 @@
 import {
-    Clock,
+    // Clock,
     Group,
     Scene,
     PerspectiveCamera,
@@ -60,7 +60,7 @@ interface LearningToSeeHall extends Hall {
         videoWall: any,
         progressFrac: number,
         loadedOnce: boolean,
-        clock: Clock,
+        // clock: Clock,
     }
 }
 
@@ -97,7 +97,7 @@ const thisHall: LearningToSeeHall = {
                 size: 200,
                 divisions: 200,
                 gridColor: 0x888888,
-                alpha: 0.75,
+                alpha: 0.8,
             },
 
             fog: {
@@ -145,7 +145,7 @@ const thisHall: LearningToSeeHall = {
         },
         progressFrac: 0,
         loadedOnce: false,
-        clock: new Clock(true),
+        // clock: new Clock(true),
 
     },
     setup: async function (): Promise<void> {
@@ -357,7 +357,7 @@ const thisHall: LearningToSeeHall = {
         let state = thisHall.state;
         let settings = state.settings;
         let cam = state.camera;
-        let time = state.clock.getElapsedTime();
+        // let time = state.clock.getElapsedTime();
 
         if(state.stats) state.stats.begin();
 
@@ -378,6 +378,8 @@ const thisHall: LearningToSeeHall = {
             }
             state.videoWall.mat.uniforms.tex.needsUpdate = true;
             if (settings.videoWall.eq.osc.enabled) {
+                let vwvid = state.vids[state.vids.length-1]; // videowall video
+                let time = vwvid.currentTime; // use this to stay in sync with videowall
                 let s = 0.5 + 0.5 * Math.cos(time * 2 * Math.PI / settings.videoWall.eq.osc.period + settings.videoWall.eq.osc.phase);
                 state.videoWall.mat.uniforms.saturation.value = MathUtils.lerp(settings.videoWall.eq.osc.saturation[0], settings.videoWall.eq.osc.saturation[1], s);
                 state.videoWall.mat.uniforms.contrast.value = MathUtils.lerp(settings.videoWall.eq.osc.contrast[0], settings.videoWall.eq.osc.contrast[1], s);
