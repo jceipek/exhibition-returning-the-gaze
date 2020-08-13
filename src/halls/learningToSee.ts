@@ -140,7 +140,7 @@ const thisHall: LearningToSeeHall = {
                     });
                 }
 
-                async function loadVideos(videoSrcs: string[]) : Promise<HTMLVideoElement[]> {
+                async function loadVideos(videoSrcs: string[]): Promise<HTMLVideoElement[]> {
                     return new Promise<HTMLVideoElement[]>((resolve, reject) => {
                         Promise.all(videoSrcs.map(makeVideo)).then((videos) => {
                             resolve(videos);
@@ -401,7 +401,7 @@ const thisHall: LearningToSeeHall = {
 }
 export = thisHall;
 
-function getHallwayLength () {
+function getHallwayLength() {
     let state = thisHall.state;
     let settings = state.settings;
     // return settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
@@ -429,17 +429,19 @@ const windowEventListeners: WindowListeners = {
         state.camera.rotation.set(0, -frac * 0.5, 0);
         if (state.waypoint) {
             // Should technically use the renderer dimensions instead of window
-            waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
-                                  y: -(evt.clientY / window.innerHeight) * 2 + 1},
-                                  state.waypointState,
-                                  state.camera, getHallwayLength(), /* out */ state.waypoint.position);
+            waypointMoveToMouse({
+                x: (evt.clientX / window.innerWidth) * 2 - 1,
+                y: -(evt.clientY / window.innerHeight) * 2 + 1
+            },
+                state.waypointState,
+                state.camera, getHallwayLength(), /* out */ state.waypoint.position);
         }
     },
     click: (evt: MouseEvent) => {
         let state = thisHall.state;
         waypointTryStartMove(state.waypointState,
-                             state.progressFrac,
-                             state.waypoint.position.z/(-getHallwayLength()));
+            state.progressFrac,
+            state.waypoint.position.z / (-getHallwayLength()));
     }
 }
 
