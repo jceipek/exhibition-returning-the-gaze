@@ -46,3 +46,15 @@ export function normalizeWheel(event: any): any {
         pixelY: pY
     };
 }
+
+export function getTimestamp() {
+    return (new Date()).valueOf();
+}
+
+export function lerp(t: number, a: number, b: number): number {
+    return a + t * (b - a);
+}
+
+export function easeInOutCubic(x: number): number {
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+}

@@ -2,6 +2,7 @@ import './main.css';
 import { Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
 
 import { Halls, Hall, HallState } from "./common"
+import { getTimestamp } from "./utils"
 import * as learningToSeeHall from "./halls/learningToSee"
 import * as masksHall from "./halls/masks"
 import * as droneHall from "./halls/droneHall"
@@ -27,10 +28,6 @@ const halls: Halls = {
     nextState: HallState.Init,
     nextHallIdx: 0,
     allHalls: [droneHall, masksHall, learningToSeeHall, laurenHall],
-}
-
-function getTimestamp() {
-    return (new Date()).valueOf();
 }
 
 const loadingIndicator = document.getElementsByClassName("js-loading")[0];
