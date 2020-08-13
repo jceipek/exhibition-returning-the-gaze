@@ -106,7 +106,7 @@ const thisHall: DroneHall = {
                 for (let i = 0; i <= 1; i += 1/depthDivisions) {
                     let x = lerp(i, -showcaseVideoWidth/2, showcaseVideoWidth/2);
                     points.push(new Vector3(x, hallwayFloorY, showcaseVideoPosZ));
-                    points.push(new Vector3(x, hallwayFloorY, 5));
+                    points.push(new Vector3(x, hallwayFloorY, 0));
                 }
                 // Floor across
                 for (let i = 0; i <= 1; i += 1/acrossDivisions) {
