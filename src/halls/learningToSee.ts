@@ -20,6 +20,9 @@ import {
     Vector3,
 } from "three";
 
+// import { Stats } from "stats.js";
+import Stats = require("stats.js");
+
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
@@ -41,6 +44,7 @@ import waypointSrc from "../models/waypointwhite.glb";
 interface LearningToSeeHall extends Hall {
 
     state: {
+        stats: Stats,
         settings: any,
         videoSrcs: string[],
         vids: HTMLVideoElement[], // last video is for videoWall
@@ -63,7 +67,10 @@ const thisHall: LearningToSeeHall = {
     iconPath,
     introId: "js-learning-to-see-hall",
     state: {
+        stats: null,
         settings: {
+            showStats: false,
+
             camHeight: 0.7, // camera height
             scrollSpeed: 0.0001, // how fast scrolling affects movement
 
@@ -275,6 +282,13 @@ const thisHall: LearningToSeeHall = {
                         state.scene.fog = new FogExp2(0, settings.fog.density);
                     }
 
+                    // stats
+                    if (settings.showStats) {
+                        state.stats = new Stats();
+                        state.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
+                        document.body.appendChild(state.stats.dom);
+                    }
+
                     thisHall.state.loadedOnce = true;
                     postLoad();
                     resolve();
@@ -307,6 +321,7 @@ const thisHall: LearningToSeeHall = {
         let state = thisHall.state;
         let settings = state.settings;
         let cam = state.camera;
+        if(state.stats) state.stats.begin();
 
         // update camera
         let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
@@ -406,6 +421,8 @@ const thisHall: LearningToSeeHall = {
 
         // update camera
         renderer.render(state.scene, cam);
+
+        if(state.stats) state.stats.end();
     },
 
     resize: function () {
