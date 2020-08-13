@@ -47,6 +47,7 @@ interface LearningToSeeHall extends Hall {
         screenGroups: Mesh[][],
         reflectionScreenGroups: Mesh[][],
         videoWall: Object3D,
+        videoWallMat: MeshBasicMaterial,
         progressFrac: number,
         loadedOnce: boolean
     }
@@ -82,7 +83,7 @@ const thisHall: LearningToSeeHall = {
                 size: 200,
                 divisions: 200,
                 gridColor: 0x888888,
-                alpha: 0.8,
+                alpha: 0.75,
             },
 
             fog: {
@@ -96,8 +97,9 @@ const thisHall: LearningToSeeHall = {
                 arcTheta: Math.PI * 0.22,
                 radius: 80,
                 zoffset: 0,
-                segments: 8,
-                color: 0.6,
+                segments: 6,
+                brightness: 1,
+                fadeSpeed: 0.001,
             }
 
         },
@@ -110,6 +112,7 @@ const thisHall: LearningToSeeHall = {
         screenGroups: [],
         reflectionScreenGroups: [],
         videoWall: new Object3D(),
+        videoWallMat: null,
         progressFrac: 0,
         loadedOnce: false
     },
@@ -224,7 +227,7 @@ const thisHall: LearningToSeeHall = {
                             let mat = makeMaterial(vid);
                             mat.side = DoubleSide;
                             mat.fog = false;
-                            mat.color.setScalar(settings.videoWall.color);
+                            mat.color.setScalar(0);
                             let geometry = new CylinderGeometry(radius, radius, height, settings.videoWall.segments, 1, true, 0, arcTheta);
 
                             let count = Math.ceil(Math.PI / arcTheta);
@@ -239,6 +242,7 @@ const thisHall: LearningToSeeHall = {
                                 }
                             }
                             state.scene.add(state.videoWall);
+                            state.videoWallMat = mat;
                         });
                     }
 
@@ -282,12 +286,14 @@ const thisHall: LearningToSeeHall = {
             vid.muted = false;
             vid.play();
         });
+        if (thisHall.state.videoWallMat) thisHall.state.videoWallMat.color.setScalar(0);
     },
     onLeave: function () {
         thisHall.state.vids.forEach(vid => {
             vid.muted = true;
             vid.pause();
         });
+        if (thisHall.state.videoWallMat) thisHall.state.videoWallMat.color.setScalar(0);
         removeEventListeners();
     },
     render: function (renderer) {
@@ -302,6 +308,15 @@ const thisHall: LearningToSeeHall = {
 
         // update videoWall
         state.videoWall.position.set(cam.position.x, cam.position.y, cam.position.z);
+        if (thisHall.state.videoWallMat) {
+            if (state.videoWallMat.color.r < settings.videoWall.brightness) {
+                state.videoWallMat.color.setScalar(state.videoWallMat.color.r + settings.videoWall.fadeSpeed);
+                if (state.videoWallMat.color.r > settings.videoWall.brightness) {
+                    state.videoWallMat.color.setScalar(settings.videoWall.brightness);
+                }
+            }
+            // console.log(state.videoWallMat.color.r)
+        }
 
         // update screens
         for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
