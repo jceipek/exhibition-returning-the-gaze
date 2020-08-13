@@ -18,9 +18,10 @@ stats.dom.style.left = "auto";
 stats.dom.style.right = "0";
 stats.dom.style.top = "50px";
 /* document.body.appendChild(stats.dom); */
+document.body.appendChild(stats.dom);
 
 const halls: Halls = {
-    renderer: new WebGLRenderer(),
+    renderer: new WebGLRenderer({antialias: true}),
     state: HallState.Init,
     lastState: HallState.None,
     currHallIdx: 0,
