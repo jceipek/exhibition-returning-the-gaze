@@ -382,10 +382,6 @@ const thisHall: LearningToSeeHall = {
         state.progressFrac = waypointUpdate(state.waypointState, state.progressFrac);
 
         // update camera
-        let length = getHallwayLength();
-        let targetCamZ = -state.progressFrac * length;
-        cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
-
         renderer.render(state.scene, cam);
     },
 
