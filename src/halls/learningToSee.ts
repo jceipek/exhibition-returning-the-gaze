@@ -55,7 +55,7 @@ const thisHall: LearningToSeeHall = {
             camHeight: 0.7, // camera height
             scrollSpeed: 0.0001, // how fast scrolling affects movement
 
-            baseHeight: 0.7, // minimum screen height
+            baseHeight: 0.7 - 0.5, // minimum screen height
             startDistance: 6, // distance to first set of screens
             depthSpacing: 8, // distance in depth between screenGroups
             widthSpacingNear: 1.3, // minumum width between adjacent screens
@@ -65,7 +65,7 @@ const thisHall: LearningToSeeHall = {
             camDistHeightPow: 4, // order of camera distance width height
             camDistScale: 0.3, // how distance affects scale (fake scale effect)
             camDistClamp: 1.5, // how many depthSpacings away to start moving screens
-            rotMult: 1.5, // how much to multiply current rotation by (after looking at camera)
+            rotMult: new Vector3(1, 1.5, 0), // how much to multiply current rotation by (after looking at camera)
             moveSpeed: 0.05, // how fast each screen moves to target
             borderSize: 1.07, // size of white border
 
@@ -91,7 +91,7 @@ const thisHall: LearningToSeeHall = {
                 radius: 80,
                 zoffset: 0,
                 segments: 8,
-                color: 0.7,
+                color: 0.6,
             }
 
         },
@@ -148,10 +148,14 @@ const thisHall: LearningToSeeHall = {
                             uvs[1][2].set(xMax, yMax);
 
                             function createScreen(geometry: Geometry, material: Material, screenGroup: any[]) {
+                                let root = new Object3D();
+                                root.position.set(0, 100, 0);
+                                screenGroup.push(root);
+                                state.scene.add(root);
+
                                 let plane = new Mesh(geometry, material);
-                                plane.position.set(0, 100, 0);
-                                state.scene.add(plane);
-                                screenGroup.push(plane);
+                                plane.position.set(0, 0.5, 0);
+                                root.add(plane);
 
                                 // border
                                 if (settings.borderSize > 1) {
@@ -176,7 +180,7 @@ const thisHall: LearningToSeeHall = {
                     }
 
                     // create videoWall
-                    // TODO: I have no idea what I'm doing with this syntax. wtf is Promise?, and this weird => syntax? (it works so leaving as is :P)
+                    // TODO: I have no idea what I'm doing. wtf is Promise?, and this weird syntax? (it works so leaving as is :P)
                     if (settings.videoWall.enabled) {
                         Promise.all([videoWallsrc].map(makeVideo)).then((wallVideos) => {
                             let vid = wallVideos[0]; // get first video (bit dodgy, don't really need an array, but I don't understand this syntax)
@@ -259,13 +263,23 @@ const thisHall: LearningToSeeHall = {
         let settings = state.settings;
         let cam = state.camera;
 
+        // update camera
+        let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
+        let targetCamZ = -state.progressFrac * length;
+        cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
+
+        // update videoWall
+        state.videoWall.position.set(cam.position.x, cam.position.y, cam.position.z);
+
+        // update screens
         for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
             let screenGroup = state.screenGroups[screenGroupIdx];
 
             for (let screenIdx = 0; screenIdx < screenGroup.length; screenIdx++) {
                 let screen = screenGroup[screenIdx];
 
-                let camDistNorm = Math.abs(screen.position.z - cam.position.z) / settings.depthSpacing; // normalised
+                let camDist = Math.abs(screen.position.z - cam.position.z);
+                let camDistNorm = camDist / settings.depthSpacing; // normalised
                 let camDistNormClamped = MathUtils.clamp(camDistNorm, 0, settings.camDistClamp);
 
                 // camDistNormClamped /= settings.camDistClamp;
@@ -289,8 +303,12 @@ const thisHall: LearningToSeeHall = {
                 screen.position.addScaledVector(targetPosition.sub(screen.position), settings.moveSpeed);
 
                 // set screen orientation
-                screen.lookAt(cam.position);
-                screen.rotation.set(0, screen.rotation.y * settings.rotMult, 0);
+                screen.lookAt(cam.position.x, cam.position.y, cam.position.z);
+                let rotMultX = 0;
+                if (screenGroup.length == 1 && camDist < 1.5) { // only do x rotation if single screen, and very close
+                    rotMultX = (1.5 - camDist) * settings.rotMult.x;
+                }
+                screen.rotation.set(screen.rotation.x * rotMultX, screen.rotation.y * settings.rotMult.y, screen.rotation.z * settings.rotMult.z);
 
                 // set screen scale (fake scale effect)
                 let targetScale = 1 + camDistNormClamped * settings.camDistScale;
@@ -327,14 +345,6 @@ const thisHall: LearningToSeeHall = {
                 }
             }
         }
-
-        // update camera
-        let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
-        let targetCamZ = -state.progressFrac * length;
-        cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
-
-        // update videoWall
-        state.videoWall.position.set(cam.position.x, cam.position.y, cam.position.z);
 
         // render
         renderer.render(state.scene, cam);
