@@ -18,7 +18,6 @@ import {
     MathUtils,
     Object3D,
     Vector3,
-    Color
 } from "three";
 
 import { normalizeWheel } from "../utils"
@@ -42,6 +41,7 @@ interface LearningToSeeHall extends Hall {
         vids: HTMLVideoElement[], // last video is for videoWall
         scene: Scene,
         camera: PerspectiveCamera,
+        cameraTargetRotY: number, 
         waypointState: WaypointState,
         waypoint: Group | null,
         screenGroups: Mesh[][],
@@ -107,6 +107,7 @@ const thisHall: LearningToSeeHall = {
         vids: [],
         scene: new Scene(),
         camera: new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100),
+        cameraTargetRotY: 0,
         waypointState: waypointMakeState(0.01),
         waypoint: null,
         screenGroups: [],
@@ -305,6 +306,7 @@ const thisHall: LearningToSeeHall = {
         let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
         let targetCamZ = -state.progressFrac * length;
         cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
+        cam.rotation.setFromVector3(new Vector3(0, cam.rotation.y + (state.cameraTargetRotY - cam.rotation.y) * settings.moveSpeed, 0));
 
         // update videoWall
         state.videoWall.position.set(cam.position.x, cam.position.y, cam.position.z);
@@ -441,7 +443,7 @@ const windowEventListeners: WindowListeners = {
     mousemove: (evt: MouseEvent) => {
         let state = thisHall.state;
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
-        state.camera.rotation.set(0, -frac * 0.5, 0);
+        state.cameraTargetRotY = -frac * 0.5;
         if (state.waypoint) {
             // Should technically use the renderer dimensions instead of window
             waypointMoveToMouse({
