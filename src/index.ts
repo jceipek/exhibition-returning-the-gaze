@@ -17,7 +17,7 @@ stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
 stats.dom.style.left = "auto";
 stats.dom.style.right = "0";
 stats.dom.style.top = "50px";
-document.body.appendChild(stats.dom);
+// document.body.appendChild(stats.dom);
 
 const halls: Halls = {
     renderer: new WebGLRenderer({antialias: true}),
@@ -348,7 +348,15 @@ function handleHalls() {
                 halls.allHalls[halls.currHallIdx].render(halls.renderer);
                 let progress = halls.allHalls[halls.currHallIdx].getProgressFrac();
                 if (progress >= 0.99) {
-                    halls.state = HallState.StartedLeavingHall;
+                    // HACK: At the end, we want to go to reflection instead of
+                    // to the first hall, but after reflection, we want to start with
+                    // the first hall again.
+                    if (halls.currHallIdx === halls.allHalls.length-1) {
+                        halls.currHallIdx = 0;
+                        halls.state = HallState.Reflecting;
+                    } else {
+                        halls.state = HallState.StartedLeavingHall;
+                    }
                 }
             } break;
         case HallState.StartedLeavingHall:
