@@ -99,8 +99,8 @@ const thisHall: DroneHall = {
 
                 var points = [];
 
-                let depthDivisions = 10;
-                let acrossDivisions = 30;
+                let depthDivisions = 1;
+                let acrossDivisions = 1;
 
                 // Floor in depth
                 for (let i = 0; i <= 1; i += 1/depthDivisions) {
@@ -282,7 +282,9 @@ const thisHall: DroneHall = {
             // drones[i].group.position.set(Math.sin((i*-1.5))+0.4,
             //                             (Math.sin(i*1.3)) *0.6, 
             //                             i - 6.5);
-            drones[i].group.position.set(Math.sin(i * 1.5) + 0.3, Math.sin(i * 0.2)+0.1 , i - 5);
+            drones[i].group.position.set(Math.sin (i)-0.5 , 
+                                        Math.sin(i * 0.2)+0.1 , 
+                                        i - 5);
             drones[i].group.rotation.set(noise(0, (Date.now() - startTs) * 0.001, 0) * 0.1, noise(0, (Date.now() - startTs) * 0.001, 0) * 0.2, 0);
         }
 
