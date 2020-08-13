@@ -260,7 +260,8 @@ const thisHall: LearningToSeeHall = {
                         // grid
                         if (settings.floor.grid) {
                             let grid = new GridHelper(settings.floor.size, settings.floor.divisions, settings.floor.gridColor, settings.floor.gridColor);
-                            grid.position.set(0, 0.1, 0);
+                            let s = settings.floor.size/settings.floor.divisions/2;
+                            grid.position.set(s, 0.1, s);
                             state.scene.add(grid);
                         }
                     }
