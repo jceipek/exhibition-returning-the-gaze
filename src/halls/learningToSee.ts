@@ -3,11 +3,12 @@ import {
     PerspectiveCamera,
     PlaneGeometry,
     Geometry,
+    CylinderGeometry,
     FogExp2,
     GridHelper,
     Material,
     MeshBasicMaterial,
-    MeshStandardMaterial,
+    DoubleSide,
     Mesh,
     WebGLRenderer,
     VideoTexture,
@@ -15,16 +16,18 @@ import {
     RGBFormat,
     MathUtils,
     Object3D,
-    Vector3
+    Vector3,
+    Color
 } from "three";
 
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 
-import video1src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
+import video1src from "../media/memoakten_learningtodream_384x384_crf20.webm";
 import video2src from "../media/memoakten_gloomysunday_noborder_512x256_crf20.webm";
 import video3src from "../media/memoakten_stardust2_noborder_512x256_crf20.webm";
-import video4src from "../media/memoakten_learningtodream_384x384_crf20.webm";
+import video4src from "../media/memoakten_truecolors_v1_384x384_crf20.webm";
+import videoWallsrc from "../media/memowall_test.webm"
 import iconPath from "../media/map/learningtosee.png";
 
 interface LearningToSeeHall extends Hall {
@@ -32,11 +35,12 @@ interface LearningToSeeHall extends Hall {
     state: {
         settings: any,
         videoSrcs: string[],
-        vids: HTMLVideoElement[],
+        vids: HTMLVideoElement[], // last video is for videoWall
         scene: Scene,
         camera: PerspectiveCamera,
         screenGroups: Mesh[][],
         reflectionScreenGroups: Mesh[][],
+        videoWall: Object3D,
         progressFrac: number,
         loadedOnce: boolean
     }
@@ -54,10 +58,10 @@ const thisHall: LearningToSeeHall = {
             baseHeight: 0.7, // minimum screen height
             startDistance: 6, // distance to first set of screens
             depthSpacing: 8, // distance in depth between screenGroups
-            widthSpacingNear: 1.1, // minumum width between adjacent screens
+            widthSpacingNear: 1.3, // minumum width between adjacent screens
             camDistWidthMult: 2, // how camera distance affects width spacing
             camDistWidthPow: 3, // order of camera distance width spacing influence
-            camDistHeightMult: 1, // how camera distance affects height
+            camDistHeightMult: 1.1, // how camera distance affects height
             camDistHeightPow: 4, // order of camera distance width height
             camDistScale: 0.3, // how distance affects scale (fake scale effect)
             camDistClamp: 1.5, // how many depthSpacings away to start moving screens
@@ -69,8 +73,8 @@ const thisHall: LearningToSeeHall = {
                 enabled: true,
                 reflections: true,
                 grid: true,
-                size: 100,
-                divisions: 100,
+                size: 200,
+                divisions: 200,
                 gridColor: 0x888888,
                 alpha: 0.8,
             },
@@ -79,6 +83,17 @@ const thisHall: LearningToSeeHall = {
                 enabled: true,
                 density: 0.06,
             },
+
+            videoWall: {
+                enabled: true,
+                reflection: true,
+                arcTheta: Math.PI * 0.22,
+                radius: 80,
+                zoffset: 0,
+                segments: 8,
+                color: 0.7,
+            }
+
         },
         videoSrcs: [],
         vids: [],
@@ -86,6 +101,7 @@ const thisHall: LearningToSeeHall = {
         camera: new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100),
         screenGroups: [],
         reflectionScreenGroups: [],
+        videoWall: new Object3D(),
         progressFrac: 0,
         loadedOnce: false
     },
@@ -97,13 +113,9 @@ const thisHall: LearningToSeeHall = {
         return new Promise<void>((resolve) => {
             if (!thisHall.state.loadedOnce) {
                 let state = thisHall.state;
-                state.videoSrcs = [
-                    video1src,
-                    video2src,
-                    video3src,
-                    video4src,
-                ];
 
+                // create screens and load videos
+                state.videoSrcs = [video1src, video2src, video3src, video4src,];
                 Promise.all(state.videoSrcs.map(makeVideo)).then((videos) => {
                     let settings = state.settings;
                     state.vids = videos;
@@ -163,10 +175,42 @@ const thisHall: LearningToSeeHall = {
                         }
                     }
 
+                    // create videoWall
+                    // TODO: I have no idea what I'm doing with this syntax. wtf is Promise?, and this weird => syntax? (it works so leaving as is :P)
+                    if (settings.videoWall.enabled) {
+                        Promise.all([videoWallsrc].map(makeVideo)).then((wallVideos) => {
+                            let vid = wallVideos[0]; // get first video (bit dodgy, don't really need an array, but I don't understand this syntax)
+                            state.vids.push(vid); // add to end of state.vids
+
+                            let arcTheta = settings.videoWall.arcTheta;
+                            let radius = settings.videoWall.radius;
+                            let height = arcTheta * radius * vid.height / vid.width;
+                            let mat = makeMaterial(vid);
+                            mat.side = DoubleSide;
+                            mat.fog = false;
+                            mat.color.setScalar(settings.videoWall.color);
+                            let geometry = new CylinderGeometry(radius, radius, height, settings.videoWall.segments, 1, true, 0, arcTheta);
+
+                            let count = Math.ceil(Math.PI / arcTheta);
+                            for (let j = 0; j < 1 + settings.videoWall.reflection; j++) {
+                                for (let i = 0; i < count; i++) {
+                                    let flip = j > 0 ? -1 : 1;
+                                    let mesh = new Mesh(geometry, mat);
+                                    mesh.position.set(0, flip * height / 2, settings.videoWall.zoffset);
+                                    mesh.scale.set(1, flip, 1);
+                                    mesh.rotateY(Math.PI / 2 + arcTheta * i);
+                                    state.videoWall.add(mesh);
+                                }
+                            }
+                            state.scene.add(state.videoWall);
+                        });
+                    }
+
+
                     // create floor
                     if (settings.floor.enabled) {
                         if (settings.floor.reflections) {
-                            let floorMat = new MeshStandardMaterial({ color: 0x000000, opacity: settings.floor.alpha, transparent: true });
+                            let floorMat = new MeshBasicMaterial({ color: 0x000000, opacity: settings.floor.alpha, transparent: true });
                             let floor = new Mesh(new PlaneGeometry(settings.floor.size, settings.floor.size), floorMat);
                             floor.rotateX(-Math.PI / 2);
                             state.scene.add(floor);
@@ -224,6 +268,10 @@ const thisHall: LearningToSeeHall = {
                 let camDistNorm = Math.abs(screen.position.z - cam.position.z) / settings.depthSpacing; // normalised
                 let camDistNormClamped = MathUtils.clamp(camDistNorm, 0, settings.camDistClamp);
 
+                // camDistNormClamped /= settings.camDistClamp;
+                // camDistNormClamped = (3 * camDistNormClamped * camDistNormClamped) - (2 * camDistNormClamped * camDistNormClamped * camDistNormClamped);
+                // camDistNormClamped *= settings.camDistClamp;
+
                 // set screen position
                 let xposMult = 0;
                 let yposMult = 0;
@@ -271,20 +319,24 @@ const thisHall: LearningToSeeHall = {
 
                     let vid = state.vids[screenGroupIdx];
                     vid.volume = volume;
-                    if(volume==0) { 
+                    if (volume == 0) {
                         if (!vid.paused) vid.pause();
                     } else {
                         if (vid.paused) vid.play();
-                    } 
+                    }
                 }
             }
         }
 
         // update camera
-        let length = settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
+        let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
         let targetCamZ = -state.progressFrac * length;
         cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
 
+        // update videoWall
+        state.videoWall.position.set(cam.position.x, cam.position.y, cam.position.z);
+
+        // render
         renderer.render(state.scene, cam);
     },
 
