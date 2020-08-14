@@ -55,13 +55,13 @@ export function waypointMoveToMouse(mouseNDC : { x: number, y: number }, waypoin
     } else {
         document.body.style.cursor = "";
     }
-    waypoint.lastMouseNorm.set(mouseNDC.x, Math.min(mouseNDC.y, -.5));
+    waypoint.lastMouseNorm.set(mouseNDC.x, Math.min(mouseNDC.y, -.1));
     waypoint.raycaster.setFromCamera(waypoint.lastMouseNorm, camera);
     waypoint.raycaster.ray.intersectPlane(waypoint.groundPlane, /* out */ outWaypointPos);
 
     // Limit the maximum movement you can take at once so you can't leave a hall with one click
     let signedDist = outWaypointPos.z - camera.position.z;
-    let moveCap = maxZ * 0.9;
+    let moveCap = maxZ * 0.8;
     if (Math.abs(signedDist) > moveCap) {
         outWaypointPos.z = camera.position.z + Math.sign(signedDist)*moveCap;
     }

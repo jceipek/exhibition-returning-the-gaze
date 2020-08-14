@@ -32,9 +32,9 @@ import { Halls, Hall, HallState } from "../common"
 import { loader, load3dModel } from "../modelLoader"
 import { waypointMakeState,  waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 
-import eyesSrc from "../media/eyes3.webm";
+import eyesSrc from "../media/KWeyes.webm";
 import videoLoroSrc from "../media/KW2.webm";
-import droneSrc from "../models/drone2.glb";
+import droneSrc from "../models/KWdrone.glb";
 import waypointSrc from "../models/waypoint.glb";
 import iconPath from "../media/map/drones.png";
 
@@ -217,9 +217,9 @@ const thisHall: DroneHall = {
 
                                 const columns = 2;
                                 const rows = 1;
-                                //the height and width of each eye video 
-                                let eyeSegmentHeight = 103;
-                                let eyeSegmentWidth = 233;
+                                  //the height and width of each eye video in pixels
+                                let eyeSegmentHeight = 153;
+                                let eyeSegmentWidth =  276;
 
                                 let yIndex = (Math.floor(droneindex / columns))%rows;
                                 let xIndex = (droneindex - columns * yIndex)%columns;
@@ -228,23 +228,41 @@ const thisHall: DroneHall = {
                                 let xMax = ((xIndex+1)*eyeSegmentWidth)/1280;
                                 let yMin = (yIndex*eyeSegmentHeight)/720;
                                 let yMax = ((yIndex+1)*eyeSegmentHeight)/720;
-                                {
-                                    let geometry = new PlaneGeometry(1.108156, 0.344204, 1);                                     
+                                let fracWidth = xMax - xMin;
+                                { // Left Eye
+                                    let geometry = new PlaneGeometry(1.84, 0.921, 1);                                     
                                     let uvs = geometry.faceVertexUvs[0];
                                     
                                     uvs[0][0].set( xMin , yMax );
                                     uvs[0][1].set( xMin , yMin );
-                                    uvs[0][2].set( xMax , yMax );
+                                    uvs[0][2].set( xMax - fracWidth/2 , yMax );
                                     uvs[1][0].set( xMin , yMin );
+                                    uvs[1][1].set( xMax - fracWidth/2 , yMin );
+                                    uvs[1][2].set( xMax - fracWidth/2 , yMax );
+                                
+                                    let plane = new Mesh(geometry, eyesMaterial);
+                                    plane.position.set(-1.2909,1.2121,0.040422);
+                                    plane.rotateX (34.591*2*Math.PI/360);
+                                    model.add(plane);
+                                }
+                                { // Right Eye
+                                    let geometry = new PlaneGeometry(1.84, 0.921, 1);                                     
+                                    let uvs = geometry.faceVertexUvs[0];
+                                    
+                                    uvs[0][0].set( xMin + fracWidth/2 , yMax );
+                                    uvs[0][1].set( xMin + fracWidth/2 , yMin );
+                                    uvs[0][2].set( xMax , yMax );
+                                    uvs[1][0].set( xMin + fracWidth/2 , yMin );
                                     uvs[1][1].set( xMax , yMin );
                                     uvs[1][2].set( xMax , yMax );
                                 
                                     let plane = new Mesh(geometry, eyesMaterial);
-                                    plane.position.set(0, 0.2626, -0.01);
+                                    plane.position.set(1.2909,1.2121,0.040422);
+                                    plane.rotateX (34.591*2*Math.PI/360);
                                     model.add(plane);
                                 }
 
-                                model.scale.set(.5,.5,.5);
+                                model.scale.set(.1,.1,.1);
 
                                 state.drones.push({
                                     group: model
