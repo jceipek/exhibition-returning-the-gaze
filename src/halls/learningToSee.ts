@@ -375,8 +375,8 @@ const thisHall: LearningToSeeHall = {
         // }
 
         // update videoWall
-        state.videoWall.obj.position.set(cam.position.x, cam.position.y, cam.position.z);
-        if (thisHall.state.videoWall.mat) {
+        if (state.videoWall.mat && state.videoWall.vid) {
+            state.videoWall.obj.position.set(cam.position.x, cam.position.y, cam.position.z);
             let vid = state.videoWall.vid;
             let time = vid.currentTime; // use this to stay in sync with videowall
             let duration = vid.duration;
