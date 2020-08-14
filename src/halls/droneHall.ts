@@ -30,13 +30,14 @@ import {
 import { getTimestamp, normalizeWheel, lerp } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { loader, load3dModel } from "../modelLoader"
-import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
+import { waypointMakeState,  waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 
 import eyesSrc from "../media/eyes3.webm";
 import videoLoroSrc from "../media/KW.webm";
 import droneSrc from "../models/drone2.glb";
 import waypointSrc from "../models/waypoint.glb";
 import iconPath from "../media/map/drones.png";
+
 // import waypointTextureSrc from "../media/wayPoint.png";
 
 
@@ -166,7 +167,7 @@ const thisHall: DroneHall = {
                 var line = new LineSegments(geometry1, material);
                 state.scene.add(line);
 
-                var enableFog= true;
+                var enableFog= false;
                 if(enableFog){
                 state. scene.fog= new FogExp2 (0xffffff,0.1);
                 }
