@@ -45,7 +45,7 @@ interface LearningToSeeHall extends Hall {
         stats: Stats,
         settings: any,
         videoSrcs: string[],
-        vids: HTMLVideoElement[], // last video is for videoWall
+        vids: HTMLVideoElement[], // only videos for screens
         scene: Scene,
         camera: PerspectiveCamera,
         cameraTargetRotY: number,
@@ -140,6 +140,7 @@ const thisHall: LearningToSeeHall = {
             obj: new Object3D(),
             mat: null,
             tex: null,
+            vid: null,
         },
         progressFrac: 0,
         loadedOnce: false,
@@ -250,7 +251,8 @@ const thisHall: LearningToSeeHall = {
                     if (settings.videoWall.enabled) {
                         Promise.all([videoWallsrc].map(makeVideo)).then((wallVideos) => {
                             let vid = wallVideos[0]; // get first video (bit dodgy, don't really need an array, but I don't understand this syntax)
-                            state.vids.push(vid); // add to end of state.vids
+                            // state.vids.push(vid); // add to end of state.vids
+                            state.videoWall.vid = vid;
 
                             let tex = makeVideoTex(vid);
 
@@ -341,6 +343,7 @@ const thisHall: LearningToSeeHall = {
             vid.muted = false;
             vid.play();
         });
+        if (thisHall.state.videoWall.vid) thisHall.state.videoWall.vid.play();
         if (thisHall.state.videoWall.mat) thisHall.state.videoWall.mat.uniforms.brightness.value = 0;
     },
     onLeave: function () {
@@ -348,6 +351,7 @@ const thisHall: LearningToSeeHall = {
             vid.muted = true;
             vid.pause();
         });
+        if (thisHall.state.videoWall.vid) thisHall.state.videoWall.vid.pause();
         if (thisHall.state.videoWall.mat) thisHall.state.videoWall.mat.uniforms.brightness.value = 0;
         removeEventListeners();
     },
@@ -368,9 +372,12 @@ const thisHall: LearningToSeeHall = {
         // update videoWall
         state.videoWall.obj.position.set(cam.position.x, cam.position.y, cam.position.z);
         if (thisHall.state.videoWall.mat) {
-            let vwvid = state.vids[state.vids.length - 1]; // videowall video
-            let time = vwvid.currentTime; // use this to stay in sync with videowall
-            let duration = vwvid.duration;
+            let vid = state.videoWall.vid;
+            let time = vid.currentTime; // use this to stay in sync with videowall
+            let duration = vid.duration;
+
+            // make sure video is playing
+            if(vid.paused) vid.play();
 
             // fade in video wall when activated
             // if (state.videoWall.mat.uniforms.brightness.value < settings.videoWall.eq.brightness) {
