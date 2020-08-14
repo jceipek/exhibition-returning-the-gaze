@@ -33,7 +33,7 @@ import { loader, load3dModel } from "../modelLoader"
 import { waypointMakeState,  waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 
 import eyesSrc from "../media/eyes3.webm";
-import videoLoroSrc from "../media/KW.webm";
+import videoLoroSrc from "../media/KW2.webm";
 import droneSrc from "../models/drone2.glb";
 import waypointSrc from "../models/waypoint.glb";
 import iconPath from "../media/map/drones.png";
