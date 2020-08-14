@@ -471,7 +471,6 @@ const thisHall: LearningToSeeHall = {
                         volume *= volume * volume * volume;
                     } else {
                         volume = MathUtils.clamp(camDistNorm, 0, 1);
-                        // volume = MathUtils.clamp(camDistNorm, 0, 1);
                         volume = volume * volume;
                         volume = 1 - volume;
                     }
@@ -481,13 +480,21 @@ const thisHall: LearningToSeeHall = {
                     volume /= (1 - settings.baseHeight + Math.min(screen.position.y, 10));
 
                     let vid = state.vids[screenGroupIdx];
-                    vid.volume = volume;
-                    if (volume < 0.01) { // minvolume
-                        if (!vid.paused) vid.pause();
+                    vid.volume = lerpTo(vid.volume, volume, 0.05, 0.01);
+                    if (vid.volume < 0.01) { // minvolume
+                        if (!vid.paused) {
+                            console.log('Stopping video', screenGroupIdx)
+                            vid.pause();
+                            // vid.muted = true;
+                        }
                     } else {
-                        if (vid.paused) vid.play();
+                        if (vid.paused) {
+                            console.log('Starting video', screenGroupIdx)
+                            vid.play();
+                            // vid.muted = false;
+                        }
                         // if (screenGroupIdx == 0) {
-                        //     console.log(volume0.toFixed(2), volume.toFixed(2), screen.position.y.toFixed(2));
+                        //     console.log("Volume", volume.toFixed(3), vid.volume.toFixed(3));
                         // }
                     }
                 }
@@ -530,6 +537,7 @@ function lerpTo(from:any, to:any, speed:number, err:any) {
 
 
 function init() {
+    console.log("Learning to see: init");
     let state = thisHall.state;
     let settings = state.settings;
 
@@ -539,6 +547,7 @@ function init() {
 
     // init videos
     state.vids.forEach(vid => {
+        vid.volume = 0;
         vid.muted = false;
         vid.pause();
     });
@@ -547,7 +556,7 @@ function init() {
     if (state.videoWall.vid) state.videoWall.vid.pause();
     if (state.videoWall.mat) state.videoWall.mat.uniforms.brightness.value = 0;
 
-    // init screens off screen
+    // init screens off screen 
     for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
         let screenGroup = state.screenGroups[screenGroupIdx];
 
@@ -557,7 +566,7 @@ function init() {
         }
     }
 
-    // init grid off screen
+    // init grid
     if (state.grid) {
         let s = settings.floor.size / settings.floor.divisions / 2;
         // state.grid.position.set(s, 0, s - settings.floor.size/2);
