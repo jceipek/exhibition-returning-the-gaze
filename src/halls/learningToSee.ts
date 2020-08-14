@@ -54,6 +54,7 @@ interface LearningToSeeHall extends Hall {
         screenGroups: Mesh[][],
         reflectionScreenGroups: Mesh[][],
         videoWall: any,
+        grid: GridHelper,
         progressFrac: number,
         loadedOnce: boolean,
         // clock: Clock,
@@ -70,10 +71,11 @@ const thisHall: LearningToSeeHall = {
             showStats: false,
 
             camHeight: 0.7, // camera height
+            camStartDistance: 6, // distance to first set of screens
             scrollSpeed: 0.0001, // how fast scrolling affects movement
 
             baseHeight: 0.7 - 0.5, // minimum screen height
-            startDistance: 6, // distance to first set of screens
+            startHeight: 100, // start off screen
             depthSpacing: 8, // distance in depth between screenGroups
             widthSpacingNear: 1.3, // minumum width between adjacent screens
             camDistWidthMult: 2, // how camera distance affects width spacing
@@ -90,10 +92,11 @@ const thisHall: LearningToSeeHall = {
                 enabled: true,
                 reflections: true,
                 grid: true,
+                speed : 0.05,
                 size: 200,
                 divisions: 200,
                 gridColor: 0x888888,
-                alpha: 0.8,
+                alpha: 0.75,
             },
 
             fog: {
@@ -121,9 +124,9 @@ const thisHall: LearningToSeeHall = {
                     },
                     interactive: false,
                 },
-                // fadeSpeed: 0.0005, // fade in when hall is activated 
                 fadeInTime: 20, // fade in at start
                 fadeOutTime: 20, // fade out before ending
+                fadeSpeed: 0.01, // fade in when hall is activated 
             }
 
         },
@@ -142,6 +145,7 @@ const thisHall: LearningToSeeHall = {
             tex: null,
             vid: null,
         },
+        grid: null,
         progressFrac: 0,
         loadedOnce: false,
         // clock: new Clock(true),
@@ -216,7 +220,6 @@ const thisHall: LearningToSeeHall = {
 
                             function createScreen(geometry: Geometry, material: Material, screenGroup: any[]) {
                                 let root = new Object3D();
-                                root.position.set(0, 100, 0);
                                 screenGroup.push(root);
                                 state.scene.add(root);
 
@@ -300,16 +303,15 @@ const thisHall: LearningToSeeHall = {
                         if (settings.floor.reflections) {
                             let floorMat = new MeshBasicMaterial({ color: 0x000000, opacity: settings.floor.alpha, transparent: true });
                             let floor = new Mesh(new PlaneGeometry(settings.floor.size, settings.floor.size), floorMat);
+                            floor.position.set(0, -0.05, 0);
                             floor.rotateX(-Math.PI / 2);
                             state.scene.add(floor);
                         }
 
                         // grid
                         if (settings.floor.grid) {
-                            let grid = new GridHelper(settings.floor.size, settings.floor.divisions, settings.floor.gridColor, settings.floor.gridColor);
-                            let s = settings.floor.size / settings.floor.divisions / 2;
-                            grid.position.set(s, 0.1, s);
-                            state.scene.add(grid);
+                            state.grid = new GridHelper(settings.floor.size, settings.floor.divisions, settings.floor.gridColor, settings.floor.gridColor);
+                            state.scene.add(state.grid);
                         }
                     }
 
@@ -325,6 +327,8 @@ const thisHall: LearningToSeeHall = {
                         document.body.appendChild(state.stats.dom);
                     }
 
+                    init();
+
                     thisHall.state.loadedOnce = true;
                     postLoad();
                     resolve();
@@ -336,25 +340,18 @@ const thisHall: LearningToSeeHall = {
             }
         });
     },
+
     onEnter: function (renderer: WebGLRenderer) {
         renderer.setClearColor("black");
+        init();
         registerEventListeners();
-        thisHall.state.vids.forEach(vid => {
-            vid.muted = false;
-            vid.play();
-        });
-        if (thisHall.state.videoWall.vid) thisHall.state.videoWall.vid.play();
-        if (thisHall.state.videoWall.mat) thisHall.state.videoWall.mat.uniforms.brightness.value = 0;
     },
+
     onLeave: function () {
-        thisHall.state.vids.forEach(vid => {
-            vid.muted = true;
-            vid.pause();
-        });
-        if (thisHall.state.videoWall.vid) thisHall.state.videoWall.vid.pause();
-        if (thisHall.state.videoWall.mat) thisHall.state.videoWall.mat.uniforms.brightness.value = 0;
+        init();
         removeEventListeners();
     },
+
     render: function (renderer) {
         let state = thisHall.state;
         let settings = state.settings;
@@ -364,10 +361,18 @@ const thisHall: LearningToSeeHall = {
         if (state.stats) state.stats.begin();
 
         // update camera
-        let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
+        let length = settings.camStartDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
         let targetCamZ = -state.progressFrac * length;
         cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
-        cam.rotation.setFromVector3(new Vector3(0, cam.rotation.y + (state.cameraTargetRotY - cam.rotation.y) * settings.moveSpeed, 0));
+        cam.rotation.setFromVector3(new Vector3(0, lerpTo(cam.rotation.y, state.cameraTargetRotY, settings.moveSpeed, 0.001), 0));
+
+        // update grid
+        // if (state.grid) {
+            // let s = settings.floor.size / settings.floor.divisions / 2;
+            // let pos = lerpTo(state.grid.position.z, s, settings.floor.speed, 0.01);
+            // state.grid.position.set(s, 0, pos);
+            // console.log(state.grid.position);
+        // }
 
         // update videoWall
         state.videoWall.obj.position.set(cam.position.x, cam.position.y, cam.position.z);
@@ -377,32 +382,24 @@ const thisHall: LearningToSeeHall = {
             let duration = vid.duration;
 
             // make sure video is playing
-            if(vid.paused) vid.play();
+            if (vid.paused) vid.play();
 
-            // fade in video wall when activated
-            // if (state.videoWall.mat.uniforms.brightness.value < settings.videoWall.eq.brightness) {
-            //     state.videoWall.mat.uniforms.brightness.value += settings.videoWall.fadeSpeed;
-            // }
-            // if (state.videoWall.mat.uniforms.brightness.value > settings.videoWall.eq.brightness) {
-            //     state.videoWall.mat.uniforms.brightness.value = settings.videoWall.eq.brightness;
-            // }
+            // update texture
+            state.videoWall.mat.uniforms.tex.needsUpdate = true;
 
             // fade in/out at start and end of video
+            let targetBrightness = settings.videoWall.eq.brightness;
             if (time < settings.videoWall.fadeInTime) {
-                state.videoWall.mat.uniforms.brightness.value =
-                    MathUtils.mapLinear(time, 0, settings.videoWall.fadeInTime, 0, settings.videoWall.eq.brightness);
-                // console.log(time.toFixed(1), 'brightness:', state.videoWall.mat.uniforms.brightness.value.toFixed(1));
+                targetBrightness = MathUtils.mapLinear(time, 0, settings.videoWall.fadeInTime, 0, settings.videoWall.eq.brightness);
             }
             else if (time > duration - settings.videoWall.fadeOutTime) {
-                state.videoWall.mat.uniforms.brightness.value =
-                    MathUtils.mapLinear(time, duration - settings.videoWall.fadeOutTime, duration, settings.videoWall.eq.brightness, 0);
-                // console.log(time.toFixed(1), 'brightness:', state.videoWall.mat.uniforms.brightness.value.toFixed(1));
-            } else if (state.videoWall.mat.uniforms.brightness.value != settings.videoWall.eq.brightness) {
-                state.videoWall.mat.uniforms.brightness.value = settings.videoWall.eq.brightness;
-                // console.log(time.toFixed(1), 'brightness:', state.videoWall.mat.uniforms.brightness.value.toFixed(1));
+                targetBrightness = MathUtils.mapLinear(time, duration - settings.videoWall.fadeOutTime, duration, settings.videoWall.eq.brightness, 0);
             }
 
-            state.videoWall.mat.uniforms.tex.needsUpdate = true;
+            // fade in video wall to target brightness when activated
+            state.videoWall.mat.uniforms.brightness.value = lerpTo(state.videoWall.mat.uniforms.brightness.value, targetBrightness, settings.videoWall.fadeSpeed, 0.01);
+
+            // contrast and saturation
             if (settings.videoWall.eq.osc.enabled) {
                 let s = 0.5 + 0.5 * Math.cos(time * 2 * Math.PI / settings.videoWall.eq.osc.period + settings.videoWall.eq.osc.phase);
                 state.videoWall.mat.uniforms.saturation.value = MathUtils.lerp(settings.videoWall.eq.osc.saturation[0], settings.videoWall.eq.osc.saturation[1], s);
@@ -442,7 +439,7 @@ const thisHall: LearningToSeeHall = {
                 }
                 let targetPosition = new Vector3(xposMult * Math.pow(camDistNormClamped, settings.camDistWidthPow) * settings.camDistWidthMult * (1 + screenGroupIdx * 0.0) + xposMult * settings.widthSpacingNear / 2,
                     yposMult * Math.pow(camDistNormClamped, settings.camDistHeightPow) * settings.camDistHeightMult * (1 + screenGroupIdx * 0.0) + settings.baseHeight,
-                    -(settings.startDistance + settings.depthSpacing * screenGroupIdx));
+                    -(settings.camStartDistance + settings.depthSpacing * screenGroupIdx));
 
                 screen.position.addScaledVector(targetPosition.sub(screen.position), settings.moveSpeed);
 
@@ -475,16 +472,23 @@ const thisHall: LearningToSeeHall = {
                     } else {
                         volume = MathUtils.clamp(camDistNorm, 0, 1);
                         // volume = MathUtils.clamp(camDistNorm, 0, 1);
-                        // volume = volume * volume;
+                        volume = volume * volume;
                         volume = 1 - volume;
                     }
 
+                    // fade with height
+                    let volume0 = volume;
+                    volume /= (1 - settings.baseHeight + Math.min(screen.position.y, 10));
+
                     let vid = state.vids[screenGroupIdx];
                     vid.volume = volume;
-                    if (volume == 0) {
+                    if (volume < 0.01) { // minvolume
                         if (!vid.paused) vid.pause();
                     } else {
                         if (vid.paused) vid.play();
+                        // if (screenGroupIdx == 0) {
+                        //     console.log(volume0.toFixed(2), volume.toFixed(2), screen.position.y.toFixed(2));
+                        // }
                     }
                 }
             }
@@ -493,7 +497,7 @@ const thisHall: LearningToSeeHall = {
         // Update waypoint visualization
         state.progressFrac = waypointUpdate(state.waypointState, state.progressFrac);
 
-        // update camera
+        // render scene
         renderer.render(state.scene, cam);
 
         if (state.stats) state.stats.end();
@@ -515,11 +519,57 @@ const thisHall: LearningToSeeHall = {
 }
 export = thisHall;
 
+function lerpTo(from:any, to:any, speed:number, err:any) {
+    if(Math.abs(from - to) > err) {
+        return from + (to - from) * speed;
+    }
+    else {
+        return to;
+    }
+}
+
+
+function init() {
+    let state = thisHall.state;
+    let settings = state.settings;
+
+    // init camera
+    state.cameraTargetRotY = 0;
+    state.camera.rotation.set(0, 0, 0);
+
+    // init videos
+    state.vids.forEach(vid => {
+        vid.muted = false;
+        vid.pause();
+    });
+
+    // init videowall 
+    if (state.videoWall.vid) state.videoWall.vid.pause();
+    if (state.videoWall.mat) state.videoWall.mat.uniforms.brightness.value = 0;
+
+    // init screens off screen
+    for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
+        let screenGroup = state.screenGroups[screenGroupIdx];
+
+        for (let screenIdx = 0; screenIdx < screenGroup.length; screenIdx++) {
+            let screen = screenGroup[screenIdx];
+            screen.position.set(0, settings.startHeight, 0);
+        }
+    }
+
+    // init grid off screen
+    if (state.grid) {
+        let s = settings.floor.size / settings.floor.divisions / 2;
+        // state.grid.position.set(s, 0, s - settings.floor.size/2);
+        state.grid.position.set(s, 0, s);
+    }
+}
+
 function getHallwayLength() {
     let state = thisHall.state;
     let settings = state.settings;
-    // return settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
-    return settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.96);
+    // return settings.camStartDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
+    return settings.camStartDistance + settings.depthSpacing * (state.videoSrcs.length - 0.96);
 }
 
 interface WindowListeners {
