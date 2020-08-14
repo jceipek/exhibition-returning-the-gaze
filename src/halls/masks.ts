@@ -1,4 +1,4 @@
-import { Group, Scene, PerspectiveCamera, PlaneGeometry, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, LinearFilter, RGBFormat } from "three";
+import { Group, Scene, PerspectiveCamera, PlaneGeometry,AudioListener, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, FogExp2, LinearFilter, RGBFormat, AudioLoader } from "three";
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
@@ -11,6 +11,8 @@ import video4src from "../media/Mask05.webm";
 import video5src from "../media/Mask01.webm";
 import iconPath from "../media/map/eyes.png";
 import waypointSrc from "../models/waypointwhite.glb";
+import sound from "../media/MaskHallSound.webm";
+import { state } from "./droneHall";
 
 interface MasksHall extends Hall {
     state: {
@@ -25,6 +27,7 @@ interface MasksHall extends Hall {
         loadedOnce: boolean
     }
 }
+
 
 const hallwayFloorY = -.5;
 const hallwayLength = 7.5;
@@ -68,6 +71,7 @@ const thisHall: MasksHall = {
                     video3src,
                     video4src,
                     video5src,
+                    sound,
                 ];
                 state.planeData = [
                     {pos: [-1,0,3-5-1], rot:  [0,45,0]},
@@ -75,6 +79,7 @@ const thisHall: MasksHall = {
                     {pos: [-1,0,3-8-1], rot:  [0,35,0]},
                     {pos: [1,0,5-8-1], rot:  [0,-15,0]},
                     {pos: [0,0,3-10-1], rot: [0,0,0]},
+                    {pos: [15,0,3-10], rot: [0,0,0]},
                 ];
                 
                 async function addWaypoint(loader: Loader, waypointSrc: string): Promise<void> {
@@ -86,6 +91,13 @@ const thisHall: MasksHall = {
                         });
                     });
                 }
+
+
+                var enableFog= true;
+                if(enableFog){
+                state. scene.fog= new FogExp2 (0x000000,0.1);
+                }
+
                 
                 async function addPlanes() : Promise<void> {
                     return new Promise<void>((resolve, reject) => {
@@ -170,7 +182,7 @@ const windowEventListeners: WindowListeners = {
     mousemove: (evt: MouseEvent) => {
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
         let state = thisHall.state;
-        state.camera.rotation.set(0, -frac * 0.3, 0);
+        state.camera.rotation.set(0, -frac * 0.6, 0);
         if (state.waypoint) {
             // Should technically use the renderer dimensions instead of window
             waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
@@ -230,13 +242,6 @@ async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
         }
     });
 }
-
-
-
-
-
-
-
 
 function makeVideoTex(video: HTMLVideoElement) {
     let texture = new VideoTexture( video );

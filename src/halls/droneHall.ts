@@ -1,7 +1,10 @@
 
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { GridHelper,
+import { 
+    TextureLoader,
+    FogExp2,
+    GridHelper,
     Vector2,
     Vector3,
     BoxGeometry,
@@ -27,13 +30,15 @@ import { GridHelper,
 import { getTimestamp, normalizeWheel, lerp } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { loader, load3dModel } from "../modelLoader"
-import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
+import { waypointMakeState,  waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 
 import eyesSrc from "../media/eyes3.webm";
-import videoLoroSrc from "../media/KW.webm";
+import videoLoroSrc from "../media/KW2.webm";
 import droneSrc from "../models/drone2.glb";
 import waypointSrc from "../models/waypoint.glb";
 import iconPath from "../media/map/drones.png";
+
+// import waypointTextureSrc from "../media/wayPoint.png";
 
 
 interface Drone {
@@ -102,63 +107,73 @@ const thisHall: DroneHall = {
                 let depthDivisions = 1;
                 let acrossDivisions = 1;
 
+                let hallwayStartZ = 20;
+
                 // Floor in depth
                 for (let i = 0; i <= 1; i += 1/depthDivisions) {
                     let x = lerp(i, -showcaseVideoWidth/2, showcaseVideoWidth/2);
                     points.push(new Vector3(x, hallwayFloorY, showcaseVideoPosZ));
-                    points.push(new Vector3(x, hallwayFloorY, 0));
+                    points.push(new Vector3(x, hallwayFloorY, hallwayStartZ));
                 }
-                // Floor across
-                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
-                    let z = lerp(i, 0, showcaseVideoPosZ);
-                    points.push(new Vector3(-showcaseVideoWidth/2, hallwayFloorY, z));
-                    points.push(new Vector3(showcaseVideoWidth/2, hallwayFloorY, z));
-                }
+                // // Floor across
+                // for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                //     let z = lerp(i, 0, showcaseVideoPosZ);
+                //     points.push(new Vector3(-showcaseVideoWidth/2, hallwayFloorY, z));
+                //     points.push(new Vector3(showcaseVideoWidth/2, hallwayFloorY, z));
+                // }
                 
                 // Roof in depth
                 for (let i = 0; i <= 1; i += 1/depthDivisions) {
                     let x = lerp(i, -showcaseVideoWidth/2, showcaseVideoWidth/2);
                     points.push(new Vector3(x, -hallwayFloorY, showcaseVideoPosZ));
-                    points.push(new Vector3(x, -hallwayFloorY, 0));
+                    points.push(new Vector3(x, -hallwayFloorY, hallwayStartZ));
                 }
-                // Roof across
-                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
-                    let z = lerp(i, 0, showcaseVideoPosZ);
-                    points.push(new Vector3(-showcaseVideoWidth/2, -hallwayFloorY, z));
-                    points.push(new Vector3(showcaseVideoWidth/2, -hallwayFloorY, z));
-                }
+                // // Roof across
+                // for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                //     let z = lerp(i, 0, showcaseVideoPosZ);
+                //     points.push(new Vector3(-showcaseVideoWidth/2, -hallwayFloorY, z));
+                //     points.push(new Vector3(showcaseVideoWidth/2, -hallwayFloorY, z));
+                // }
                 
 
                 // Left wall depth
                 for (let i = 1/depthDivisions; i <= 1-1/depthDivisions; i += 1/depthDivisions) {
                     let y = lerp(i, hallwayFloorY, showcaseVideoHeight + hallwayFloorY);
                     points.push(new Vector3(-showcaseVideoWidth/2, y, showcaseVideoPosZ));
-                    points.push(new Vector3(-showcaseVideoWidth/2, y, 0));
+                    points.push(new Vector3(-showcaseVideoWidth/2, y, hallwayStartZ));
                 }
-                // Left wall across
-                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
-                    let z = lerp(i, 0, showcaseVideoPosZ);
-                    points.push(new Vector3(-showcaseVideoWidth/2, hallwayFloorY, z));
-                    points.push(new Vector3(-showcaseVideoWidth/2, showcaseVideoHeight + hallwayFloorY, z));
-                }
+                // // Left wall across
+                // for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                //     let z = lerp(i, 0, showcaseVideoPosZ);
+                //     points.push(new Vector3(-showcaseVideoWidth/2, hallwayFloorY, z));
+                //     points.push(new Vector3(-showcaseVideoWidth/2, showcaseVideoHeight + hallwayFloorY, z));
+                // }
 
                 // Right wall depth
                 for (let i = 1/depthDivisions; i <= 1-1/depthDivisions; i += 1/depthDivisions) {
                     let y = lerp(i, hallwayFloorY, showcaseVideoHeight + hallwayFloorY);
                     points.push(new Vector3(showcaseVideoWidth/2, y, showcaseVideoPosZ));
-                    points.push(new Vector3(showcaseVideoWidth/2, y, 0));
+                    points.push(new Vector3(showcaseVideoWidth/2, y, hallwayStartZ));
                 }
-                // Right wall across
-                for (let i = 0; i <= 1; i += 1/acrossDivisions) {
-                    let z = lerp(i, 0, showcaseVideoPosZ);
-                    points.push(new Vector3(showcaseVideoWidth/2, hallwayFloorY, z));
-                    points.push(new Vector3(showcaseVideoWidth/2, showcaseVideoHeight + hallwayFloorY, z));
-                }
+                // // Right wall across
+                // for (let i = 0; i <= 1; i += 1/acrossDivisions) {
+                //     let z = lerp(i, 0, showcaseVideoPosZ);
+                //     points.push(new Vector3(showcaseVideoWidth/2, hallwayFloorY, z));
+                //     points.push(new Vector3(showcaseVideoWidth/2, showcaseVideoHeight + hallwayFloorY, z));
+                // }
 
 
                 var geometry1 = new BufferGeometry().setFromPoints(points);
                 var line = new LineSegments(geometry1, material);
                 state.scene.add(line);
+
+                var enableFog= false;
+                if(enableFog){
+                state. scene.fog= new FogExp2 (0xffffff,0.1);
+                }
+
+
+
 
                 async function addWaypoint(loader: GLTFLoader, waypointSrc: string): Promise<void> {
                     return new Promise<void>((resolve, reject) => {
@@ -167,6 +182,23 @@ const thisHall: DroneHall = {
                             state.waypoint = model;
                             resolve();
                         });
+
+                        // Alternative approach with image
+                        // let dim = 0.5;
+                        // let geometry = new PlaneGeometry(dim, dim,1);
+                        // const loader = new TextureLoader();
+                        // const material = new MeshBasicMaterial({
+                        //   map: loader.load(waypointTextureSrc),
+                        //   transparent: true,
+                        //   premultipliedAlpha: true,
+                        // });
+                        // let plane = new Mesh(geometry, material);
+                        // plane.rotateX(-Math.PI/2);
+                        // let waypoint = new Group();
+                        // waypoint.add(plane);
+                        // state.waypoint = waypoint;
+                        // state.scene.add(waypoint);
+                        // resolve();
                     });
                 }
 
@@ -180,7 +212,7 @@ const thisHall: DroneHall = {
                         Promise.all([eyesVideoPromise, droneModelPromise]).then(([eyesVideo, droneGroup]) => {
                             const eyesMaterial: Material = makeMaterial(eyesVideo);
                             let model = droneGroup;
-                            for (let droneindex = 0; droneindex < 4; droneindex++) {
+                            for (let droneindex = 0; droneindex < 6; droneindex++) {
                                 model = model.clone();
 
                                 const columns = 2;
@@ -211,6 +243,8 @@ const thisHall: DroneHall = {
                                     plane.position.set(0, 0.2626, -0.01);
                                     model.add(plane);
                                 }
+
+                                model.scale.set(.5,.5,.5);
 
                                 state.drones.push({
                                     group: model
@@ -279,13 +313,24 @@ const thisHall: DroneHall = {
         let progressFrac = thisHall.state.progressFrac;
         for (let i = 0; i < drones.length; i++) {
             console.log( 'drones number=', drones.length);
-            // drones[i].group.position.set(Math.sin((i*-1.5))+0.4,
-            //                             (Math.sin(i*1.3)) *0.6, 
-            //                             i - 6.5);
-            drones[i].group.position.set(Math.sin (i)-0.5 , 
-                                        Math.sin(i * 0.2)+0.1 , 
-                                        i - 5);
-            drones[i].group.rotation.set(noise(0, (Date.now() - startTs) * 0.001, 0) * 0.1, noise(0, (Date.now() - startTs) * 0.001, 0) * 0.2, 0);
+
+            let z = -((i)/(drones.length-1)) * thisHall.hallwayLength*0.8 - 0.5;
+            let toCam = z - state.camera.position.z;
+            let toCamDist = Math.abs(toCam);
+            let closenessScale = (1/(toCamDist + 0.01))*1.5;
+
+            let tMs = (Date.now() - startTs);
+            let upDownFactor = 3/((toCamDist)+0.5); //Math.max(0,(1 + noise(0,(i * 1000 + tMs) * 0.001,0)) - 0.8);
+
+            let xNoise = 0.05*noise(i/drones.length, tMs * (0.001 + closenessScale * 0.001), 0);
+            let xSideSide = 2*Math.sin(i) + Math.sin(0.2 * (i * 1000 + tMs * (0.001 + closenessScale * 0.001)))*0.05;
+            let xLimits = .6;
+            let yLimits = .5;
+            let x = Math.min(xLimits, Math.max(-xLimits, 0.8 * (1-upDownFactor) * (xNoise + xSideSide)+0.4));
+            let y = Math.min(yLimits, Math.max(-yLimits, (upDownFactor) * (0.1 * Math.sin((tMs + i * 1000) * 0.001)+0.3)));
+
+            drones[i].group.position.set( x, y, z);
+            drones[i].group.rotation.set(noise((i * 1000 + tMs) * 0.001, 0, 0) * 0.1, noise(0, (i * 1000 + tMs) * 0.001, 0) * 0.2, 0);
         }
 
         thisHall.state.progressFrac = waypointUpdate(state.waypointState, thisHall.state.progressFrac);

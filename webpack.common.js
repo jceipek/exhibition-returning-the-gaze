@@ -17,6 +17,8 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [
         { from: 'external/lauren', to: 'lauren' },
+        { from: 'favicon', to: '.' },
+        { from: 'socialMedia', to: 'socialMedia' },
       ],
     })
   ],
