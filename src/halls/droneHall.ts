@@ -211,7 +211,7 @@ const thisHall: DroneHall = {
                         Promise.all([eyesVideoPromise, droneModelPromise]).then(([eyesVideo, droneGroup]) => {
                             const eyesMaterial: Material = makeMaterial(eyesVideo);
                             let model = droneGroup;
-                            for (let droneindex = 0; droneindex < 4; droneindex++) {
+                            for (let droneindex = 0; droneindex < 6; droneindex++) {
                                 model = model.clone();
 
                                 const columns = 2;
@@ -242,6 +242,8 @@ const thisHall: DroneHall = {
                                     plane.position.set(0, 0.2626, -0.01);
                                     model.add(plane);
                                 }
+
+                                model.scale.set(.5,.5,.5);
 
                                 state.drones.push({
                                     group: model
@@ -310,13 +312,24 @@ const thisHall: DroneHall = {
         let progressFrac = thisHall.state.progressFrac;
         for (let i = 0; i < drones.length; i++) {
             console.log( 'drones number=', drones.length);
-            // drones[i].group.position.set(Math.sin((i*-1.5))+0.4,
-            //                             (Math.sin(i*1.3)) *0.6, 
-            //                             i - 6.5);
-            drones[i].group.position.set(Math.sin (i)-0.5 , 
-                                        Math.sin(i * 0.2)+0.1 , 
-                                        i - 5);
-            drones[i].group.rotation.set(noise(0, (Date.now() - startTs) * 0.001, 0) * 0.1, noise(0, (Date.now() - startTs) * 0.001, 0) * 0.2, 0);
+
+            let z = -((i)/(drones.length-1)) * thisHall.hallwayLength*0.8 - 0.5;
+            let toCam = z - state.camera.position.z;
+            let toCamDist = Math.abs(toCam);
+            let closenessScale = (1/(toCamDist + 0.01))*1.5;
+
+            let tMs = (Date.now() - startTs);
+            let upDownFactor = 3/((toCamDist)+0.5); //Math.max(0,(1 + noise(0,(i * 1000 + tMs) * 0.001,0)) - 0.8);
+
+            let xNoise = 0.05*noise(i/drones.length, tMs * (0.001 + closenessScale * 0.001), 0);
+            let xSideSide = 2*Math.sin(i) + Math.sin(0.2 * (i * 1000 + tMs * (0.001 + closenessScale * 0.001)))*0.05;
+            let xLimits = .6;
+            let yLimits = .5;
+            let x = Math.min(xLimits, Math.max(-xLimits, 0.8 * (1-upDownFactor) * (xNoise + xSideSide)+0.4));
+            let y = Math.min(yLimits, Math.max(-yLimits, (upDownFactor) * (0.1 * Math.sin((tMs + i * 1000) * 0.001)+0.3)));
+
+            drones[i].group.position.set( x, y, z);
+            drones[i].group.rotation.set(noise((i * 1000 + tMs) * 0.001, 0, 0) * 0.1, noise(0, (i * 1000 + tMs) * 0.001, 0) * 0.2, 0);
         }
 
         thisHall.state.progressFrac = waypointUpdate(state.waypointState, thisHall.state.progressFrac);
