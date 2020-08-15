@@ -1,5 +1,5 @@
 import { Vector3, Group, Scene, PerspectiveCamera, PlaneGeometry,AudioListener, MeshBasicMaterial, Mesh, WebGLRenderer, VideoTexture, FogExp2, LinearFilter, RGBFormat, AudioLoader } from "three";
-import { normalizeWheel } from "../utils"
+import { normalizeWheel,lerp, lerpTo } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 import { Loader, loader, load3dModel } from "../modelLoader"
@@ -26,10 +26,11 @@ interface MasksHall extends Hall {
         progressFrac: number,
         loadedOnce: boolean,
         mousePos: Vector3,
+        cameraTargetRotY: number,
     }
 }
 
-
+const moveSpeed = 0.05;
 const hallwayFloorY = -0.5;
 const hallwayLength = 7.5;
 
@@ -48,6 +49,7 @@ const thisHall: MasksHall = {
         progressFrac: 0,
         loadedOnce: false,
         mousePos: new Vector3(),
+        cameraTargetRotY: 0,
     },
     setup: async function (): Promise<void> {
         function postLoad () {
@@ -148,8 +150,18 @@ const thisHall: MasksHall = {
     },
     render: function (renderer) {
         let state = thisHall.state;
-        state.progressFrac = waypointUpdate(state.waypointState, state.progressFrac);
-        state.camera.position.set(0, 0, state.progressFrac * -hallwayLength);
+
+
+      
+        // state.camera.position.set(0, 0, state.progressFrac * -hallwayLength);
+
+
+        let targetCamZ = state.progressFrac * -hallwayLength;
+        state.camera.position.set(0, 0, lerp(moveSpeed, state.camera.position.z, targetCamZ));
+        state.camera.rotation.set(0, lerpTo(state.camera.rotation.y, state.cameraTargetRotY, moveSpeed, 0.001), 0);
+        
+
+
         if (state.waypoint) {
             // Should technically use the renderer dimensions instead of window
             let clickCount = 3; // leave the hall in this many clicks
@@ -160,6 +172,7 @@ const thisHall: MasksHall = {
                                   state.camera, hallwayLength / clickCount, /* out */ state.waypoint.position);
         }
 
+        state.progressFrac = waypointUpdate(state.waypointState, state.progressFrac);
         renderer.render(state.scene, state.camera);
     },
     resize: function () {
@@ -194,7 +207,7 @@ const windowEventListeners: WindowListeners = {
     mousemove: (evt: MouseEvent) => {
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
         let state = thisHall.state;
-        state.camera.rotation.set(0, -frac * 0.6, 0);
+        state.cameraTargetRotY= -frac * 0.6;
         state.mousePos = new Vector3((evt.clientX / window.innerWidth) * 2 - 1, -(evt.clientY / window.innerHeight) * 2 + 1);
     },
     click: (evt: MouseEvent) => {

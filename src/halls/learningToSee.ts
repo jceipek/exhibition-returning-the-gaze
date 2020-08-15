@@ -22,7 +22,7 @@ import {
     Vector3,
 } from "three";
 
-import { normalizeWheel } from "../utils"
+import { normalizeWheel, lerpTo } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 import { Loader, loader, load3dModel } from "../modelLoader"
@@ -517,15 +517,6 @@ const thisHall: LearningToSeeHall = {
     },
 }
 export = thisHall;
-
-function lerpTo(from: any, to: any, speed: number, err: any) {
-    if (Math.abs(from - to) > err) {
-        return from + (to - from) * speed;
-    }
-    else {
-        return to;
-    }
-}
 
 
 function init() {
