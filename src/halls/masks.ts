@@ -29,7 +29,7 @@ interface MasksHall extends Hall {
 }
 
 
-const hallwayFloorY = -1;
+const hallwayFloorY = -0.5;
 const hallwayLength = 7.5;
 
 const thisHall: MasksHall = {
