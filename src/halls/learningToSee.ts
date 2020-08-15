@@ -72,7 +72,6 @@ const thisHall: LearningToSeeHall = {
             showStats: false,
 
             camHeight: 0.7, // camera height
-            viewDist: 3, // ideal viewing distance from camera to screens
             startDistance: 6, // distance to first set of screens
             scrollSpeed: 0.0001, // how fast scrolling affects movement
 
@@ -89,6 +88,13 @@ const thisHall: LearningToSeeHall = {
             rotMult: new Vector3(1, 1.5, 0), // how much to multiply current rotation by (after looking at camera)
             moveSpeed: 0.05, // how fast each screen moves to target
             borderSize: 1.07, // size of white border
+
+            waypoint: {
+                stopDist: 3, // ideal viewing distance from camera to screens
+                extraDist: 1.7, // buffer distance taking into account camera clipping
+                lerpSpeed: 0.3,
+                maxSpeed: 0.2,
+            },
 
             floor: {
                 enabled: true,
@@ -714,25 +720,40 @@ function updateWayPoint() {
     if (state.waypoint) {
 
         // find distance to next screen (remember we are moving in -z)
-        let targetz = -(getHallwayLength() + settings.viewDist * 2); // if no screen is found, aim for past end
+        let targetz = -(getHallwayLength() + settings.waypoint.stopDist * 2); // if no screen is found, aim for past end
         for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
             let screenGroup = state.screenGroups[screenGroupIdx];
             let screen = screenGroup[0];
-            if (-state.camera.position.z < -screen.position.z - settings.viewDist * 1.1) { // if camera has not yet reached screen 
+            if (-state.camera.position.z < -screen.position.z - settings.waypoint.stopDist - settings.waypoint.extraDist) { // if camera has not yet reached screen 
                 targetz = screen.position.z;
                 break;
             }
         }
 
-        let maxz = -(targetz - state.camera.position.z) - settings.viewDist;
+        let maxz = -(targetz - state.camera.position.z) - settings.waypoint.stopDist;
 
         // Should technically use the renderer dimensions instead of window
+        let v = new Vector3;
         waypointMoveToMouse({
             x: state.mousePos.x,
             y: state.mousePos.y
         },
             state.waypointState,
-            state.camera, maxz, /* out */ state.waypoint.position, -0.1);
+            state.camera, maxz, /* out */ v, -0.1);
+
+        // update waypoint position
+        v.sub(state.waypoint.position); // vector from current waypoint to target
+        if(settings.waypoint.lerpSpeed > 0) {
+            v.multiplyScalar(settings.waypoint.lerpSpeed); // scaled down vector from current wp to target
+        }
+        if(settings.waypoint.maxSpeed > 0) {
+            if(v.lengthSq() > settings.waypoint.maxSpeed * settings.waypoint.maxSpeed) {
+                v.normalize();
+                v.multiplyScalar(settings.waypoint.maxSpeed);
+            }
+        }
+        state.waypoint.position.add(v);
+
         // console.log('camz:', state.camera.position.z.toFixed(2),
         //     '\ntargetz:', targetz.toFixed(2),
         //     '\nmaxz:', maxz.toFixed(2),
