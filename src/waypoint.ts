@@ -64,9 +64,8 @@ export function waypointMoveToMouse(mouseNDC : { x: number, y: number }, waypoin
     let moveCap = maxZ;// * 0.9; // The 0.9 is interfering with my maxZ Calulations :) Better to pass in appropiately scaled maxZ /Memo
     if (Math.abs(signedDist) > moveCap) {
         outWaypointPos.z -= camera.position.z;
-        outWaypointPos.multiplyScalar(Math.sign(signedDist)*moveCap / outWaypointPos.z); // scale entire vector
-        outWaypointPos.z += camera.position.z;
-
+        outWaypointPos.x *= Math.sign(signedDist) * moveCap / outWaypointPos.z; // scale x accordingly
+        outWaypointPos.z = camera.position.z + Math.sign(signedDist) * moveCap;
     }
 }
 
