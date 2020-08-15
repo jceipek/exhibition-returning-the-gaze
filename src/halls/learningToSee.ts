@@ -51,6 +51,7 @@ interface LearningToSeeHall extends Hall {
         cameraTargetRotY: number,
         waypointState: WaypointState,
         waypoint: Group | null,
+        wayPointTarget: Vector3,
         screenGroups: Mesh[][],
         reflectionScreenGroups: Mesh[][],
         videoWall: any,
@@ -139,6 +140,7 @@ const thisHall: LearningToSeeHall = {
         cameraTargetRotY: 0,
         waypointState: waypointMakeState(0.01),
         waypoint: null,
+        wayPointTarget: new Vector3,
         screenGroups: [],
         reflectionScreenGroups: [],
         videoWall: {
@@ -718,7 +720,7 @@ function updateWayPoint() {
         for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
             let screenGroup = state.screenGroups[screenGroupIdx];
             let screen = screenGroup[0];
-            if (-state.camera.position.z < -screen.position.z - settings.viewDist * 1.1) { // if camera has not yet reached screen 
+            if (-state.camera.position.z < -screen.position.z - settings.viewDist - 1.7) { // if camera has not yet reached screen 
                 targetz = screen.position.z;
                 break;
             }
@@ -732,7 +734,12 @@ function updateWayPoint() {
             y: state.mousePos.y
         },
             state.waypointState,
-            state.camera, maxz, /* out */ state.waypoint.position, -0.1);
+            state.camera, maxz, /* out */ state.wayPointTarget, -0.1);
+
+        // update waypoint position
+        state.wayPointTarget.sub(state.waypoint.position);
+        state.waypoint.position.addScaledVector(state.wayPointTarget, settings.moveSpeed);
+
         // console.log('camz:', state.camera.position.z.toFixed(2),
         //     '\ntargetz:', targetz.toFixed(2),
         //     '\nmaxz:', maxz.toFixed(2),
