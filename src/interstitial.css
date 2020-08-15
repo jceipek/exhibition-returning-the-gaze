@@ -12,7 +12,8 @@
     text-align: center;
     padding: 1rem;
     /* Allow click to pass through */
-    pointer-events: none;
+    /* pointer-events: none; */
+    cursor: pointer;
 }
 
 .loading-dots {
