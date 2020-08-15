@@ -57,6 +57,7 @@ interface LearningToSeeHall extends Hall {
         grid: GridHelper,
         progressFrac: number,
         loadedOnce: boolean,
+        mousePos: Vector3,
         // clock: Clock,
     }
 }
@@ -71,7 +72,8 @@ const thisHall: LearningToSeeHall = {
             showStats: false,
 
             camHeight: 0.7, // camera height
-            camStartDistance: 6, // distance to first set of screens
+            viewDist: 3, // ideal viewing distance from camera to screens
+            startDistance: 6, // distance to first set of screens
             scrollSpeed: 0.0001, // how fast scrolling affects movement
 
             baseHeight: 0.7 - 0.5, // minimum screen height
@@ -92,7 +94,7 @@ const thisHall: LearningToSeeHall = {
                 enabled: true,
                 reflections: true,
                 grid: true,
-                speed : 0.05,
+                speed: 0.05,
                 size: 200,
                 divisions: 200,
                 gridColor: 0x888888,
@@ -148,6 +150,7 @@ const thisHall: LearningToSeeHall = {
         grid: null,
         progressFrac: 0,
         loadedOnce: false,
+        mousePos: new Vector3(),
         // clock: new Clock(true),
 
     },
@@ -361,17 +364,17 @@ const thisHall: LearningToSeeHall = {
         if (state.stats) state.stats.begin();
 
         // update camera
-        let length = settings.camStartDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
-        let targetCamZ = -state.progressFrac * length;
+        // let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
+        let targetCamZ = -state.progressFrac * getHallwayLength();
         cam.position.set(0, settings.camHeight, (targetCamZ - cam.position.z) * settings.moveSpeed + cam.position.z);
         cam.rotation.setFromVector3(new Vector3(0, lerpTo(cam.rotation.y, state.cameraTargetRotY, settings.moveSpeed, 0.001), 0));
 
         // update grid
         // if (state.grid) {
-            // let s = settings.floor.size / settings.floor.divisions / 2;
-            // let pos = lerpTo(state.grid.position.z, s, settings.floor.speed, 0.01);
-            // state.grid.position.set(s, 0, pos);
-            // console.log(state.grid.position);
+        // let s = settings.floor.size / settings.floor.divisions / 2;
+        // let pos = lerpTo(state.grid.position.z, s, settings.floor.speed, 0.01);
+        // state.grid.position.set(s, 0, pos);
+        // console.log(state.grid.position);
         // }
 
         // update videoWall
@@ -439,7 +442,7 @@ const thisHall: LearningToSeeHall = {
                 }
                 let targetPosition = new Vector3(xposMult * Math.pow(camDistNormClamped, settings.camDistWidthPow) * settings.camDistWidthMult * (1 + screenGroupIdx * 0.0) + xposMult * settings.widthSpacingNear / 2,
                     yposMult * Math.pow(camDistNormClamped, settings.camDistHeightPow) * settings.camDistHeightMult * (1 + screenGroupIdx * 0.0) + settings.baseHeight,
-                    -(settings.camStartDistance + settings.depthSpacing * screenGroupIdx));
+                    -(settings.startDistance + settings.depthSpacing * screenGroupIdx));
 
                 screen.position.addScaledVector(targetPosition.sub(screen.position), settings.moveSpeed);
 
@@ -526,8 +529,8 @@ const thisHall: LearningToSeeHall = {
 }
 export = thisHall;
 
-function lerpTo(from:any, to:any, speed:number, err:any) {
-    if(Math.abs(from - to) > err) {
+function lerpTo(from: any, to: any, speed: number, err: any) {
+    if (Math.abs(from - to) > err) {
         return from + (to - from) * speed;
     }
     else {
@@ -577,8 +580,8 @@ function init() {
 function getHallwayLength() {
     let state = thisHall.state;
     let settings = state.settings;
-    // return settings.camStartDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
-    return settings.camStartDistance + settings.depthSpacing * (state.videoSrcs.length - 0.96);
+    // return settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.5);
+    return settings.startDistance + settings.depthSpacing * (state.videoSrcs.length - 0.8);
 }
 
 interface WindowListeners {
@@ -598,17 +601,13 @@ const windowEventListeners: WindowListeners = {
 
     mousemove: (evt: MouseEvent) => {
         let state = thisHall.state;
+        let settings = state.settings;
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
         state.cameraTargetRotY = -frac * 0.5;
-        if (state.waypoint) {
-            // Should technically use the renderer dimensions instead of window
-            waypointMoveToMouse({
-                x: (evt.clientX / window.innerWidth) * 2 - 1,
-                y: -(evt.clientY / window.innerHeight) * 2 + 1
-            },
-                state.waypointState,
-                state.camera, getHallwayLength(), /* out */ state.waypoint.position);
-        }
+
+        state.mousePos = new Vector3(evt.clientX, evt.clientY);
+        updateWayPoint();
+
         // console.log("mousemove", evt);
         if (evt.buttons && state.settings.videoWall.eq.interactive) {
             let mx = evt.clientX / window.innerWidth;
@@ -628,6 +627,10 @@ const windowEventListeners: WindowListeners = {
     click: (evt: MouseEvent) => {
         // console.log("click", evt);
         let state = thisHall.state;
+
+        state.mousePos = new Vector3(evt.clientX, evt.clientY);
+        updateWayPoint(); // need to update waypoints again in clickEvent in case mouse has not moved since last click (And waypoint is still behind us)
+
         waypointTryStartMove(state.waypointState,
             state.progressFrac,
             state.waypoint.position.z / (-getHallwayLength()));
@@ -705,6 +708,38 @@ async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
     });
 }
 
+function updateWayPoint() {
+    let state = thisHall.state;
+    let settings = state.settings;
+
+    if (state.waypoint) {
+
+        // find distance to next screen (remember we are moving in -z)
+        let targetz = -(getHallwayLength() + settings.viewDist * 2); // if no screen is found, aim for past end
+        for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
+            let screenGroup = state.screenGroups[screenGroupIdx];
+            let screen = screenGroup[0];
+            if (-state.camera.position.z < -screen.position.z - settings.viewDist * 1.2) { // if camera has not yet reached screen 
+                targetz = screen.position.z;
+                break;
+            }
+        }
+
+        let maxz = -(targetz - state.camera.position.z) - settings.viewDist;
+
+        // Should technically use the renderer dimensions instead of window
+        waypointMoveToMouse({
+            x: (state.mousePos.x / window.innerWidth) * 2 - 1,
+            y: -(state.mousePos.y / window.innerHeight) * 2 + 1
+        },
+            state.waypointState,
+            state.camera, maxz, /* out */ state.waypoint.position, 0);
+        // console.log('camz:', state.camera.position.z.toFixed(2),
+        //     '\ntargetz:', targetz.toFixed(2),
+        //     '\nmaxz:', maxz.toFixed(2),
+        //     '\nwaypointz:', state.waypoint.position.z.toFixed(2));
+    }
+}
 
 function vertexShader() {
     return `
