@@ -185,10 +185,11 @@ const windowEventListeners: WindowListeners = {
         state.camera.rotation.set(0, -frac * 0.6, 0);
         if (state.waypoint) {
             // Should technically use the renderer dimensions instead of window
+            let clickCount = 3; // leave the hall in this many clicks
             waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
                                   y: -(evt.clientY / window.innerHeight) * 2 + 1},
                                   state.waypointState,
-                                  state.camera, hallwayLength, /* out */ state.waypoint.position);
+                                  state.camera, hallwayLength / clickCount, /* out */ state.waypoint.position);
         }
     },
     click: (evt: MouseEvent) => {
