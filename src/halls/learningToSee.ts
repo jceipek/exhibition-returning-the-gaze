@@ -719,7 +719,7 @@ function updateWayPoint() {
         for (let screenGroupIdx = 0; screenGroupIdx < state.screenGroups.length; screenGroupIdx++) {
             let screenGroup = state.screenGroups[screenGroupIdx];
             let screen = screenGroup[0];
-            if (-state.camera.position.z < -screen.position.z - settings.viewDist * 1.2) { // if camera has not yet reached screen 
+            if (-state.camera.position.z < -screen.position.z - settings.viewDist * 1.1) { // if camera has not yet reached screen 
                 targetz = screen.position.z;
                 break;
             }
@@ -733,7 +733,7 @@ function updateWayPoint() {
             y: -(state.mousePos.y / window.innerHeight) * 2 + 1
         },
             state.waypointState,
-            state.camera, maxz, /* out */ state.waypoint.position, 0);
+            state.camera, maxz, /* out */ state.waypoint.position, -0.1);
         // console.log('camz:', state.camera.position.z.toFixed(2),
         //     '\ntargetz:', targetz.toFixed(2),
         //     '\nmaxz:', maxz.toFixed(2),
