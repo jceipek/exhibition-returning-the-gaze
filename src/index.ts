@@ -282,9 +282,11 @@ function updateLoadingDisplay(isLoading: boolean) {
             dots += ".";
         }
         loadingIndicatorDots.textContent = dots;
+        document.body.style.cursor = "wait";
     } else {
         loadingIndicatorStatus.textContent = "Press to Enter";
         loadingIndicatorDots.textContent = "";
+        document.body.style.cursor = "pointer";
     }
 }
 
