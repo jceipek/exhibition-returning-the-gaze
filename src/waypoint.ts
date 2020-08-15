@@ -49,7 +49,7 @@ export function waypointUpdate(waypoint: WaypointState, currProgress: number) : 
     return currProgress;
 }
 
-export function waypointMoveToMouse(mouseNDC : { x: number, y: number }, waypoint: WaypointState, camera: Camera, maxZ: number, outWaypointPos: Vector3, mouseMinY:number = -0.5) {
+export function waypointMoveToMouse(mouseNDC : { x: number, y: number }, waypoint: WaypointState, camera: Camera, maxZ: number, outWaypointPos: Vector3, mouseMinY:number = -0.1) {
     if (waypoint.state === WaypointMovingState.Idle) {
         document.body.style.cursor = "pointer";
     } else {
@@ -61,7 +61,7 @@ export function waypointMoveToMouse(mouseNDC : { x: number, y: number }, waypoin
 
     // Limit the maximum movement you can take at once so you can't leave a hall with one click
     let signedDist = outWaypointPos.z - camera.position.z;
-    let moveCap = maxZ;// * 0.9; // The 0.9 is interfering with my maxZ Calulations :) /Memo
+    let moveCap = maxZ;// * 0.9; // The 0.9 is interfering with my maxZ Calulations :) Better to pass in appropiately scaled maxZ /Memo
     if (Math.abs(signedDist) > moveCap) {
         let wz = camera.position.z + Math.sign(signedDist)*moveCap;
         outWaypointPos.multiplyScalar(wz / outWaypointPos.z); // scale entire vector
