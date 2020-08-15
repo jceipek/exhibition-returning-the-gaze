@@ -505,6 +505,7 @@ const thisHall: LearningToSeeHall = {
         }
 
         // Update waypoint visualization
+        updateWayPoint();
         state.progressFrac = waypointUpdate(state.waypointState, state.progressFrac);
 
         // render scene
@@ -605,8 +606,7 @@ const windowEventListeners: WindowListeners = {
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
         state.cameraTargetRotY = -frac * 0.5;
 
-        state.mousePos = new Vector3(evt.clientX, evt.clientY);
-        updateWayPoint();
+        state.mousePos = new Vector3((evt.clientX / window.innerWidth) * 2 - 1, -(evt.clientY / window.innerHeight) * 2 + 1);
 
         // console.log("mousemove", evt);
         if (evt.buttons && state.settings.videoWall.eq.interactive) {
@@ -628,8 +628,7 @@ const windowEventListeners: WindowListeners = {
         // console.log("click", evt);
         let state = thisHall.state;
 
-        state.mousePos = new Vector3(evt.clientX, evt.clientY);
-        updateWayPoint(); // need to update waypoints again in clickEvent in case mouse has not moved since last click (And waypoint is still behind us)
+        state.mousePos = new Vector3((evt.clientX / window.innerWidth) * 2 - 1, -(evt.clientY / window.innerHeight) * 2 + 1);
 
         waypointTryStartMove(state.waypointState,
             state.progressFrac,
@@ -729,8 +728,8 @@ function updateWayPoint() {
 
         // Should technically use the renderer dimensions instead of window
         waypointMoveToMouse({
-            x: (state.mousePos.x / window.innerWidth) * 2 - 1,
-            y: -(state.mousePos.y / window.innerHeight) * 2 + 1
+            x: state.mousePos.x,
+            y: state.mousePos.y
         },
             state.waypointState,
             state.camera, maxz, /* out */ state.waypoint.position, -0.1);
