@@ -56,7 +56,8 @@ interface DroneHall extends Hall {
         scene: Scene,
         camera: PerspectiveCamera,
         progressFrac: number,
-        loadedOnce: boolean
+        loadedOnce: boolean,
+        mousePos: Vector3,
     },
     hallwayLength: number,
     hallwayFloorY: number
@@ -86,7 +87,8 @@ const thisHall: DroneHall = {
         scene: new Scene(),
         camera: new PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000),
         progressFrac: 0,
-        loadedOnce: false
+        loadedOnce: false,
+        mousePos: new Vector3(),
     },
     setup: async function (): Promise<void> {
         function postLoad() {
@@ -354,6 +356,15 @@ const thisHall: DroneHall = {
         thisHall.state.progressFrac = waypointUpdate(state.waypointState, thisHall.state.progressFrac);
         thisHall.state.camera.position.set(0, 0, thisHall.state.progressFrac * -thisHall.hallwayLength);
 
+        if (state.waypoint) {
+            // Should technically use the renderer dimensions instead of window
+            waypointMoveToMouse({ x: state.mousePos.x,
+                                  y: state.mousePos.y,
+                                },
+                                  state.waypointState,
+                                  state.camera, thisHall.hallwayLength * 0.5, /* out */ state.waypoint.position);
+        }
+
         renderer.render(state.scene, state.camera);
     },
     resize: function () {
@@ -388,16 +399,11 @@ const windowEventListeners: WindowListeners = {
         let state = thisHall.state;
         let frac = (evt.clientX - window.innerWidth / 2) / (window.innerWidth / 2); // [-1..1]
         state.camera.rotation.set(0, -frac * 1.3, 0);
-        if (state.waypoint) {
-            // Should technically use the renderer dimensions instead of window
-            waypointMoveToMouse({ x: (evt.clientX / window.innerWidth) * 2 - 1,
-                                  y: -(evt.clientY / window.innerHeight) * 2 + 1},
-                                  state.waypointState,
-                                  state.camera, thisHall.hallwayLength * 0.5, /* out */ state.waypoint.position);
-        }
+        state.mousePos = new Vector3((evt.clientX / window.innerWidth) * 2 - 1, -(evt.clientY / window.innerHeight) * 2 + 1);
     },
     click: (evt: MouseEvent) => {
         let state = thisHall.state;
+        state.mousePos = new Vector3((evt.clientX / window.innerWidth) * 2 - 1, -(evt.clientY / window.innerHeight) * 2 + 1);
         waypointTryStartMove(state.waypointState,
                              state.progressFrac,
                              state.waypoint.position.z/(-thisHall.hallwayLength));
