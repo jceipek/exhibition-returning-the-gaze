@@ -22,9 +22,6 @@ import {
     Vector3,
 } from "three";
 
-// import { Stats } from "stats.js";
-import Stats = require("stats.js");
-
 import { normalizeWheel } from "../utils"
 import { Halls, Hall, HallState } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
@@ -42,7 +39,6 @@ import waypointSrc from "../models/waypointwhite.glb";
 interface LearningToSeeHall extends Hall {
 
     state: {
-        stats: Stats,
         settings: any,
         videoSrcs: string[],
         vids: HTMLVideoElement[], // only videos for screens
@@ -67,10 +63,7 @@ const thisHall: LearningToSeeHall = {
     iconPath,
     introId: "js-learning-to-see-hall",
     state: {
-        stats: null,
         settings: {
-            showStats: false,
-
             camHeight: 0.7, // camera height
             startDistance: 6, // distance to first set of screens
             scrollSpeed: 0.0001, // how fast scrolling affects movement
@@ -329,13 +322,6 @@ const thisHall: LearningToSeeHall = {
                         state.scene.fog = new FogExp2(0, settings.fog.density);
                     }
 
-                    // stats
-                    if (settings.showStats) {
-                        state.stats = new Stats();
-                        state.stats.showPanel(0); // 0: fps, 1: ms, 2: mb, 3+: custom
-                        document.body.appendChild(state.stats.dom);
-                    }
-
                     init();
 
                     thisHall.state.loadedOnce = true;
@@ -366,8 +352,6 @@ const thisHall: LearningToSeeHall = {
         let settings = state.settings;
         let cam = state.camera;
         // let time = state.clock.getElapsedTime();
-
-        if (state.stats) state.stats.begin();
 
         // update camera
         // let length = settings.startDistance + settings.depthSpacing * (state.screenGroups.length - 0.5);
@@ -516,8 +500,6 @@ const thisHall: LearningToSeeHall = {
 
         // render scene
         renderer.render(state.scene, cam);
-
-        if (state.stats) state.stats.end();
     },
 
     resize: function () {
