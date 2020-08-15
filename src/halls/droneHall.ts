@@ -221,7 +221,7 @@ const thisHall: DroneHall = {
                                 const rows = 2;
                                   //the height and width of each eye video in pixels
                                 let eyeSegmentHeight = 153;
-                                let eyeSegmentWidth =  281;
+                                let eyeSegmentWidth =  282;
 
                                 let yIndex = (Math.floor(droneindex / columns))%rows;
                                 let xIndex = (droneindex - columns * yIndex)%columns;
