@@ -2,6 +2,8 @@ AFRAME.registerComponent('setup', {
   schema: {},
   init: function () {
 
+    document.body.style.cursor = "wait";
+
     // Register navigating to the next hall
     document.querySelector('#exit-entity').addEventListener('click', function (evt) {
       // Note that "*" as the target allows anyone to embed and get the message
@@ -28,6 +30,7 @@ AFRAME.registerComponent('setup', {
     if (videoLoaded || AFRAME.utils.device.isMobile()) {
       setTimeout(function() {
         $('#loading').html('Press to Enter');
+        document.body.style.cursor = "pointer";
       }, 3000);
     }
 

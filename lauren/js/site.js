@@ -12,7 +12,6 @@ var hideRecord = true; // window.location.hash.indexOf('!') !== -1 || window.loc
 var hideVideo = true; // window.location.hash.indexOf('?') !== -1;
 if (hideVideo) videoPlaying = false;
 
-
 function toggleHomes(val) {
   links = document.querySelector('#links').getChildren();
   for (var i=0; i<links.length; i++) {
