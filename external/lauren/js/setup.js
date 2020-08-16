@@ -27,11 +27,8 @@ AFRAME.registerComponent('setup', {
     // links.emit('startRotateHomes');
 
     sceneSetup = true;
-    if (videoLoaded || AFRAME.utils.device.isMobile()) {
-      setTimeout(function() {
-        $('#loading').html('Press to Enter');
-        document.body.style.cursor = "pointer";
-      }, 3000);
+    if (videoLoaded) {
+      prepareEnter();
     }
 
   }
