@@ -248,18 +248,8 @@ $(document).ready(function() {
 
   videoLoaded = true;
   if (sceneSetup) {
-    setTimeout(function() {
-      $('#loading').html('Press to Enter');
-    }, 3000);
+    prepareEnter();
   }
-  // ENTER!
-  $('#js-lauren-hall').click(function() {
-    $('#js-lauren-hall').hide();
-    $('#loading').hide();
-    clearInterval(dotInterval); 
-    $('#lauren-video')[0].play();
-    startPassthrough();
-  })
 
   resizeDOM();
 
@@ -270,6 +260,21 @@ $(document).ready(function() {
   }
 
 });
+
+function prepareEnter() {
+  $('#loading').html('Press to Enter');
+  document.body.style.cursor = "pointer";
+
+  $('#js-lauren-hall').click(function(e) {
+    if (sceneSetup && videoLoaded) {
+      $('#js-lauren-hall').hide();
+      $('#loading').hide();
+      clearInterval(dotInterval); 
+      $('#lauren-video')[0].play();
+      startPassthrough();
+    }
+  })
+}
 
 function resizeDOM() {
   var vertCrop = $(window).width()/$(window).height() < 2;
