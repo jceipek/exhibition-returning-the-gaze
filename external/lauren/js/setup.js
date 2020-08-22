@@ -27,7 +27,8 @@ AFRAME.registerComponent('setup', {
     // links.emit('startRotateHomes');
 
     sceneSetup = true;
-    if (videoLoaded) {
+    console.log('LAUREN: SCENE SETUP');
+    if (assetsLoaded) {
       prepareEnter();
     }
 

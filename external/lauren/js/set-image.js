@@ -41,7 +41,6 @@ AFRAME.registerComponent('set-image', {
     });
 
     el.addEventListener('close', function() {
-      console.log('CLOSE')
       el.components.sound.stopSound();
       var opac = videoPlaying ? 0 : 1;
       data.target.setAttribute('material', 'shader: standard; src: #lauren-video; opacity:'+opac);
