@@ -2,15 +2,25 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.ts',
   plugins: [
-    new MiniCssExtractPlugin(),
+    new MiniCssExtractPlugin({
+      filename: '[name].css',
+    }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({
       template: 'src/index.html'
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'external/lauren', to: 'lauren' },
+        { from: 'favicon', to: '.' },
+        { from: 'socialMedia', to: 'socialMedia' },
+      ],
+    })
   ],
   output: {
     filename: 'main.js',
@@ -21,19 +31,27 @@ module.exports = {
       {
         test: /\.css$/i,
         use: [MiniCssExtractPlugin.loader, 'css-loader'],
-        exclude: /node_modules/,
+        exclude: [
+          /node_modules/,
+          /external/,
+          /dist/,
+        ],
       },
       {
         test: /\.tsx?$/,
         use: 'ts-loader',
-        exclude: /node_modules/,
+        exclude: [
+          /node_modules/,
+          /external/,
+          /dist/,
+        ]
       },
       {
         test: /\.html$/i,
         loader: 'html-loader',
       },
       {
-        test: /\.(png|svg|jpg|gif|webm)$/,
+        test: /\.(png|svg|jpg|gif|webm|glb)$/,
         use: [
           'file-loader',
         ],

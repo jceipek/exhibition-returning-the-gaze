@@ -7,6 +7,12 @@
         "noImplicitAny": true,
         "module": "commonjs",
         "allowJs": true,
-        "checkJs": true
+        "checkJs": true,
     },
+    "exclude": [
+        "node_modules",
+        "external",
+        "dist",
+        "deploy.js"
+    ]
 }

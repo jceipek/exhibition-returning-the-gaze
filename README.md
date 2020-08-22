@@ -6,6 +6,11 @@
 npm install
 ```
 
+## Tips:
+
+### Generate Favicon:
+https://realfavicongenerator.net/
+
 ## Usage
 
 ### Live-Reloading Dev Server
@@ -19,3 +24,11 @@ npm run start
 ```shell
 npm run build
 ```
+
+### Deploy to Github Pages
+
+```shell
+npm run build
+npm run deploy
+```
+
