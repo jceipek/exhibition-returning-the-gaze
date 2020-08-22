@@ -2,8 +2,9 @@ var plate = 0; // 1 - learnmore, 2 - getlauren
 var h;
 var videoPlaying = false;
 var videoEnded = false;
-var videoLoaded = false;
 var sceneSetup = false;
+var assetsLoaded = false;
+
 var dotInterval;
 var homeOpen = false;
 var links;
@@ -116,6 +117,15 @@ function validate() {
 }
 
 $(document).ready(function() {
+
+  document.querySelector('a-assets').addEventListener('loaded', function (e) {
+    console.log('LAUREN: ASSETS LOADED');
+    assetsLoaded = true;
+    if (sceneSetup) {
+      prepareEnter();
+    }
+  });
+
 
   let rot = 0;
   links = document.querySelector('#links').getChildren();
@@ -246,11 +256,6 @@ $(document).ready(function() {
   });
 
 
-  videoLoaded = true;
-  if (sceneSetup) {
-    prepareEnter();
-  }
-
   resizeDOM();
 
   if (hideRecord || !hasGetUserMedia() || document.documentElement.clientWidth <= 600) {
@@ -266,7 +271,7 @@ function prepareEnter() {
   document.body.style.cursor = "pointer";
 
   $('#js-lauren-hall').click(function(e) {
-    if (sceneSetup && videoLoaded) {
+    if (sceneSetup && assetsLoaded) {
       $('#js-lauren-hall').hide();
       $('#loading').hide();
       clearInterval(dotInterval); 
