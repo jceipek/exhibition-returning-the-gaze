@@ -28,9 +28,7 @@ AFRAME.registerComponent('setup', {
 
     sceneSetup = true;
     console.log('LAUREN: SCENE SETUP');
-    if (assetsLoaded) {
-      prepareEnter();
-    }
+    prepareEnter();
 
   }
 });
