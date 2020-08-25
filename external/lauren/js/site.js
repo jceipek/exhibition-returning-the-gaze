@@ -119,7 +119,7 @@ function validate() {
 
 
 $(document).ready(function() {
-  document.getElementById("lauren-video").src = "/lauren/media/lauren-listening4.mp4";
+  document.getElementById("lauren-video").src = "/lauren/media/lauren-broll4.mp4";
   document.getElementById("lauren-video").oncanplaythrough = function() {
     console.log("LAUREN: VIDEO LOADED");
     assetsLoaded = true;
