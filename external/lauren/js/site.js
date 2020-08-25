@@ -267,20 +267,18 @@ $(document).ready(function() {
 });
 
 function prepareEnter() {
-  setTimeout(function() { 
-    $('#loading').html('Press to Enter');
-    document.body.style.cursor = "pointer";
+  $('#loading').html('Press to Enter');
+  document.body.style.cursor = "pointer";
 
-    $('#js-lauren-hall').click(function(e) {
-      if (sceneSetup && assetsLoaded) {
-        $('#js-lauren-hall').hide();
-        $('#loading').hide();
-        clearInterval(dotInterval); 
-        $('#lauren-video')[0].play();
-        startPassthrough();
-      }
-    })
-  }, 5000);
+  $('#js-lauren-hall').click(function(e) {
+    if (sceneSetup && assetsLoaded) {
+      $('#js-lauren-hall').hide();
+      $('#loading').hide();
+      clearInterval(dotInterval); 
+      $('#lauren-video')[0].play();
+      startPassthrough();
+    }
+  })
 }
 
 function resizeDOM() {
