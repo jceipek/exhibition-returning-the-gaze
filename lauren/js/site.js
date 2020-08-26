@@ -4,6 +4,7 @@ var videoPlaying = false;
 var videoEnded = false;
 var sceneSetup = false;
 var assetsLoaded = false;
+var entered = false;
 
 var dotInterval;
 var homeOpen = false;
@@ -116,14 +117,21 @@ function validate() {
   }
 }
 
+
 $(document).ready(function() {
+  document.getElementById("lauren-video").src = "/lauren/media/lauren-broll4.mp4";
+  document.getElementById("lauren-video").oncanplaythrough = function() {
+    console.log("LAUREN: VIDEO LOADED");
+    assetsLoaded = true;
+    prepareEnter();
+  }; 
+  document.getElementById("lauren-video").load();
+  
 
   document.querySelector('a-assets').addEventListener('loaded', function (e) {
-    console.log('LAUREN: ASSETS LOADED');
+    console.log('LAUREN: ASSETS LOADED EVENT');
     assetsLoaded = true;
-    if (sceneSetup) {
-      prepareEnter();
-    }
+    prepareEnter();
   });
 
 
@@ -267,7 +275,8 @@ $(document).ready(function() {
 });
 
 function prepareEnter() {
-  setTimeout(function() { 
+  if (sceneSetup && assetsLoaded & !entered) {
+    entered = true;
     $('#loading').html('Press to Enter');
     document.body.style.cursor = "pointer";
 
@@ -279,8 +288,8 @@ function prepareEnter() {
         $('#lauren-video')[0].play();
         startPassthrough();
       }
-    })
-  }, 5000);
+    });
+  }
 }
 
 function resizeDOM() {
