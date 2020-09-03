@@ -4,10 +4,10 @@ import { Halls, Hall, HallState } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 import { Loader, loader, load3dModel } from "../modelLoader"
 
-import video1src from "../media/Mask03.webm";
+import video1src from "../media/Mask03-3.webm";
 import video2src from "../media/Mask02.webm";
 import video3src from "../media/Mask04.webm";
-import video4src from "../media/Mask05.webm";
+import video4src from "../media/Mask05-2.webm";
 import video5src from "../media/Mask01.webm";
 import iconPath from "../media/map/eyes.png";
 import waypointSrc from "../models/waypointwhite.glb";
