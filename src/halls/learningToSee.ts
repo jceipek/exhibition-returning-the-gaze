@@ -23,7 +23,7 @@ import {
 } from "three";
 
 import { normalizeWheel, lerpTo } from "../utils"
-import { Halls, Hall, HallState } from "../common"
+import { Halls, Hall, HallState, makeVideo } from "../common"
 import { waypointMakeState, waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 import { Loader, loader, load3dModel } from "../modelLoader"
 
@@ -659,32 +659,6 @@ function makeMaterial(video: HTMLVideoElement) {
 //     let plane = new Mesh(geometry, material);
 //     return plane;
 // }
-
-async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
-    let video = document.createElement("video");
-    let isSupported = video.canPlayType("video/webm");
-
-    return new Promise<HTMLVideoElement>((resolve, reject) => {
-        if (isSupported) {
-            video.src = webmSource;
-            video.loop = true;
-            video.preload = 'auto';
-            video.muted = true;
-
-            function onCanPlay() {
-                video.width = video.videoWidth;
-                video.height = video.videoHeight;
-                console.log(video);
-                resolve(video);
-                video.removeEventListener("canplay", onCanPlay);
-            }
-
-            video.addEventListener("canplay", onCanPlay);
-        } else {
-            reject("Your browser doesn't support webm videos.");
-        }
-    });
-}
 
 function updateWayPoint() {
     let state = thisHall.state;

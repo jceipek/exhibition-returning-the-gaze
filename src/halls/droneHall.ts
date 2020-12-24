@@ -28,7 +28,7 @@ import {
     Raycaster,
     Plane } from "three";
 import { getTimestamp, normalizeWheel, lerp, lerpTo } from "../utils"
-import { Halls, Hall, HallState } from "../common"
+import { Halls, Hall, HallState, makeVideo } from "../common"
 import { loader, load3dModel } from "../modelLoader"
 import { waypointMakeState,  waypointReset, waypointMoveToMouse, waypointTryStartMove, waypointUpdate, WaypointState, WaypointMovingState } from "../waypoint"
 
@@ -431,47 +431,6 @@ function removeEventListeners() {
         }
     }
 }
-
-
-
-
-async function makeVideo(webmSource: string): Promise<HTMLVideoElement> {
-    let video = document.createElement("video");
-    let isSupported = video.canPlayType("video/webm");
-
-    return new Promise<HTMLVideoElement>((resolve, reject) => {
-        if (isSupported) {
-            video.src = webmSource;
-            video.width = 640;
-            video.height = 480;
-            video.loop = true;
-
-            video.preload = 'auto';
-            video.muted = true;
-
-            function onCanPlay() {
-                resolve(video);
-                video.removeEventListener("canplay", onCanPlay);
-            }
-
-            video.addEventListener("canplay", onCanPlay);
-        } else {
-            reject("Your browser doesn't support webm videos.");
-        }
-    });
-}
-
-
-
-
-
-
-
-
-
-
-
-
 
 function adjustuvs(droneindex: number, eyesMaterial: Material) {
     console.log('generatingfunction', droneindex);
