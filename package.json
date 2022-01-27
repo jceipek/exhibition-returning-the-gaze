@@ -7,7 +7,7 @@
   "private": true,
   "dependencies": {
     "stats.js": "^0.17.0",
-    "three": "^0.118.3"
+    "three": "^0.137.0"
   },
   "devDependencies": {
     "@types/stats.js": "^0.17.0",
